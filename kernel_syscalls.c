@@ -29,13 +29,39 @@ int Exec(char filename, char *argvec)
 
 void Exit(int status)
 {
-    
+    /*
+    Save status value
+    Free all the resources used by that process
+    When parent exits, their children keep running.
+    When orphans exits, no need to save or report status.
+    */
 }
 
 int Wait(int status ptr)
 {
+    /*
+    Collects process ID and exit status returned by a child of the program calling.
+    If caller has an exited child whose info hasnt been collected yet by Wait, return it directly.
+    If there are no child processes to wait for, return with ERROR.
+    If there are children processes not terminated, block and wait for exit info to return.
+    On success, the pid of the child is returned and status ptr is written to.
+    */
 }
 
 int GetPid(void)
 {
+    // Returns the pid of the calling process
+}
+
+int Brk(void *addr)
+{
+
+}
+
+int Delay(int clock_ticks) {
+    /*
+    Block and wait unitl clock_ticks number of clock interrputs have occurec.
+    Upon completion return 0
+    IF clock_ticks < 0 return ERROR.
+    */
 }
