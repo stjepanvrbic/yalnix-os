@@ -53,7 +53,7 @@ void trap_math_handler(UserContext *user_context) {
 void trap_tty_receive_handler(UserContext *user_context) {
     // Get the trap code from the user_context
 
-    // Read the input from the terminal using TtyReceive
+    // Read the input from the terminal using TtyReceive while passing the terminal to read from.
     // If necessary 
     //      buffer the input line for a subsequent TtyRead syscall by some user process ??
 
