@@ -1,7 +1,7 @@
  /* ipc_syscalls.h --- 
  * 
  * 
- * Author:  Javier Esteban 
+ * Author:  team yeyeye 
  * Created: Sat Jan 30
  * Version: 1.0
  * 

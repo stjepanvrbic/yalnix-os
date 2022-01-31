@@ -1,7 +1,7 @@
  /* sync_syscalls.c --- 
  * 
  * 
- * Author:  Javier Esteban 
+ * Author:  team yeyeye 
  * Created: Sat Jan 30 10:33:29 2021 (-0400)
  * Version: 1.0
  * 
