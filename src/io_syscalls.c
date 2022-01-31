@@ -33,6 +33,7 @@ int TtyReceive(int tty_id, void *buf, int len)
      * return the actual legnth of the input (including the new line character \n, but excluding the end of file character ctrl+D)
      * len should not exceed TERMINAL_MAX_LINE but this should be taken care off prior to reaching here
      */
+}
 
 int TtyWrite(int tty_id,
              void *buf,
@@ -50,5 +51,8 @@ void TtyTransmit(int tty_id,
                  void *buf,
                  int len)
 {
-    
+    // Begin the transmission of len characters from memory
+    // buf must be in the kernel's memory
+    // execute after a TRAP_TTY_TRANSMIT trap 
+    // send the contents of buf to the right terminal
 }
