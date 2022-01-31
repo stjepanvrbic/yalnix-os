@@ -24,3 +24,21 @@ int TtyRead(int tty_id, void *buf, int len);
 // Outputs:
 //--------------------------------------------------------------------------------
 int TtyReceive(int tty_id, void *buf, int len); 
+
+//--------------------------------- TtyWrite ------------------------------------
+// Description:   
+// Inputs:        
+// Outputs:       
+//--------------------------------------------------------------------------------
+int TtyWrite(int tty_id,
+             void *buf,
+             int len);
+
+//--------------------------------- TtyTransmit ------------------------------------
+// Description:   
+// Inputs:        
+// Outputs:       
+//--------------------------------------------------------------------------------
+void TtyTransmit(int tty_id,
+                 void *buf,
+                 int len);

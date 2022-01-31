@@ -33,4 +33,22 @@ int TtyReceive(int tty_id, void *buf, int len)
      * return the actual legnth of the input (including the new line character \n, but excluding the end of file character ctrl+D)
      * len should not exceed TERMINAL_MAX_LINE but this should be taken care off prior to reaching here
      */
+
+int TtyWrite(int tty_id,
+             void *buf,
+             int len)
+{
+    // Write the contents of buf to the terminal tty_id
+    // Block calling process until the buffer has been written down
+    // On success return len, in case of error return ERROR
+    // If len is greater than TERMINAL_MAX_LINE then do several calls
+    // I don't know whether this should be taken care of in the handler
+    // or here?
+}
+
+void TtyTransmit(int tty_id,
+                 void *buf,
+                 int len)
+{
+    
 }
