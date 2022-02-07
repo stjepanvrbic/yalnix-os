@@ -19,15 +19,14 @@
  *  the Linux file named "name", and its arguments come from the array at
  *  "args", which is in standard argv format.  The argument "proc" points
  *  to the process or PCB structure for the process into which the program
- *  is to be loaded. 
+ *  is to be loaded.
  */
 
 /*
- * ==>> Declare the argument "proc" to be a pointer to the PCB of 
- * ==>> the current process. 
+ * ==>> Declare the argument "proc" to be a pointer to the PCB of
+ * ==>> the current process.
  */
-int
-LoadProgram(char *name, char *args[], proc) 
+int LoadProgram(char *name, char *args[], proc)
 
 {
   int fd;
@@ -46,22 +45,24 @@ LoadProgram(char *name, char *args[], proc)
   long segment_size;
   char *argbuf;
 
-  
   /*
-   * Open the executable file 
+   * Open the executable file
    */
-  if ((fd = open(name, O_RDONLY)) < 0) {
+  if ((fd = open(name, O_RDONLY)) < 0)
+  {
     TracePrintf(0, "LoadProgram: can't open file '%s'\n", name);
     return ERROR;
   }
 
-  if (LoadInfo(fd, &li) != LI_NO_ERROR) {
+  if (LoadInfo(fd, &li) != LI_NO_ERROR)
+  {
     TracePrintf(0, "LoadProgram: '%s' not in Yalnix format\n", name);
     close(fd);
     return (-1);
   }
 
-  if (li.entry < VMEM_1_BASE) {
+  if (li.entry < VMEM_1_BASE)
+  {
     TracePrintf(0, "LoadProgram: '%s' not linked for Yalnix\n", name);
     close(fd);
     return ERROR;
@@ -80,14 +81,15 @@ LoadProgram(char *name, char *args[], proc)
    *  arguments, to become the argc that the new "main" gets called with.
    */
   size = 0;
-  for (i = 0; args[i] != NULL; i++) {
+  for (i = 0; args[i] != NULL; i++)
+  {
     TracePrintf(3, "counting arg %d = '%s'\n", i, args[i]);
     size += strlen(args[i]) + 1;
   }
   argcount = i;
 
   TracePrintf(2, "LoadProgram: argsize %d, argcount %d\n", size, argcount);
-  
+
   /*
    *  The arguments will get copied starting at "cp", and the argv
    *  pointers to the arguments (and the argc value) will get built
@@ -99,10 +101,9 @@ LoadProgram(char *name, char *args[], proc)
    */
   cp = ((char *)VMEM_1_LIMIT) - size;
 
-  cpp = (char **)
-    (((int)cp - 
-      ((argcount + 3 + POST_ARGV_NULL_SPACE) *sizeof (void *))) 
-     & ~7);
+  cpp = (char **)(((int)cp -
+                   ((argcount + 3 + POST_ARGV_NULL_SPACE) * sizeof(void *))) &
+                  ~7);
 
   /*
    * Compute the new stack pointer, leaving INITIAL_STACK_FRAME_SIZE bytes
@@ -110,22 +111,19 @@ LoadProgram(char *name, char *args[], proc)
    */
   cp2 = (caddr_t)cpp - INITIAL_STACK_FRAME_SIZE;
 
-
-
   TracePrintf(1, "prog_size %d, text %d data %d bss %d pages\n",
-	      li.t_npg + data_npg, li.t_npg, li.id_npg, li.ud_npg);
+              li.t_npg + data_npg, li.t_npg, li.id_npg, li.ud_npg);
 
-
-  /* 
+  /*
    * Compute how many pages we need for the stack */
   stack_npg = (VMEM_1_LIMIT - DOWN_TO_PAGE(cp2)) >> PAGESHIFT;
 
   TracePrintf(1, "LoadProgram: heap_size %d, stack_size %d\n",
-	      li.t_npg + data_npg, stack_npg);
-
+              li.t_npg + data_npg, stack_npg);
 
   /* leave at least one page between heap and stack */
-  if (stack_npg + data_pg1 + data_npg >= MAX_PT_LEN) {
+  if (stack_npg + data_pg1 + data_npg >= MAX_PT_LEN)
+  {
     close(fd);
     return ERROR;
   }
@@ -140,9 +138,9 @@ LoadProgram(char *name, char *args[], proc)
    * Set the new stack pointer value in the process's UserContext
    */
 
-  /* 
-   * ==>> (rewrite the line below to match your actual data structure) 
-   * ==>> proc->uc.sp = cp2; 
+  /*
+   * ==>> (rewrite the line below to match your actual data structure)
+   * ==>> proc->uc.sp = cp2;
    */
 
   /*
@@ -151,11 +149,12 @@ LoadProgram(char *name, char *args[], proc)
    */
   cp2 = argbuf = (char *)malloc(size);
 
-  /* 
-   * ==>> You should perhaps check that malloc returned valid space 
+  /*
+   * ==>> You should perhaps check that malloc returned valid space
    */
 
-  for (i = 0; args[i] != NULL; i++) {
+  for (i = 0; args[i] != NULL; i++)
+  {
     TracePrintf(3, "saving arg %d = '%s'\n", i, args[i]);
     strcpy(cp2, args[i]);
     cp2 += strlen(cp2) + 1;
@@ -173,7 +172,7 @@ LoadProgram(char *name, char *args[], proc)
    */
 
   /*
-   * ==>> Then, build up the new region1.  
+   * ==>> Then, build up the new region1.
    * ==>> (See the LoadProgram diagram in the manual.)
    */
 
@@ -191,7 +190,7 @@ LoadProgram(char *name, char *args[], proc)
    * ==>> (PROT_READ | PROT_WRITE).
    */
 
-  /* 
+  /*
    * ==>> Then, stack. Allocate "stack_npg" physical pages and map them to the top
    * ==>> of the region 1 virtual address space.
    * ==>> These pages should be marked valid, with a
@@ -203,7 +202,7 @@ LoadProgram(char *name, char *args[], proc)
    */
 
   /*
-   * All pages for the new address space are now in the page table.  
+   * All pages for the new address space are now in the page table.
    */
 
   /*
@@ -211,9 +210,10 @@ LoadProgram(char *name, char *args[], proc)
    */
   lseek(fd, li.t_faddr, SEEK_SET);
   segment_size = li.t_npg << PAGESHIFT;
-  if (read(fd, (void *) li.t_vaddr, segment_size) != segment_size) {
+  if (read(fd, (void *)li.t_vaddr, segment_size) != segment_size)
+  {
     close(fd);
-    return KILL;   // see ykernel.h
+    return KILL; // see ykernel.h
   }
 
   /*
@@ -222,14 +222,13 @@ LoadProgram(char *name, char *args[], proc)
   lseek(fd, li.id_faddr, 0);
   segment_size = li.id_npg << PAGESHIFT;
 
-  if (read(fd, (void *) li.id_vaddr, segment_size) != segment_size) {
+  if (read(fd, (void *)li.id_vaddr, segment_size) != segment_size)
+  {
     close(fd);
     return KILL;
   }
 
-
-  close(fd);			/* we've read it all now */
-
+  close(fd); /* we've read it all now */
 
   /*
    * ==>> Above, you mapped the text pages as writable, so this code could write
@@ -239,12 +238,10 @@ LoadProgram(char *name, char *args[], proc)
    * ==>> the text.
    *
    * ==>> For each text page in region1, change the protection to (PROT_READ | PROT_EXEC).
-   * ==>> If any of these page table entries is also in the TLB, 
-   * ==>> you will need to flush the old mapping. 
+   * ==>> If any of these page table entries is also in the TLB,
+   * ==>> you will need to flush the old mapping.
    */
 
-
-  
   /*
    * Zero out the uninitialized data area
    */
@@ -254,8 +251,8 @@ LoadProgram(char *name, char *args[], proc)
    * Set the entry point in the process's UserContext
    */
 
-  /* 
-   * ==>> (rewrite the line below to match your actual data structure) 
+  /*
+   * ==>> (rewrite the line below to match your actual data structure)
    * ==>> proc->uc.pc = (caddr_t) li.entry;
    */
 
@@ -263,21 +260,20 @@ LoadProgram(char *name, char *args[], proc)
    * Now, finally, build the argument list on the new stack.
    */
 
+  memset(cpp, 0x00, VMEM_1_LIMIT - ((int)cpp));
 
-  memset(cpp, 0x00, VMEM_1_LIMIT - ((int) cpp));
-
-  *cpp++ = (char *)argcount;		/* the first value at cpp is argc */
+  *cpp++ = (char *)argcount; /* the first value at cpp is argc */
   cp2 = argbuf;
-  for (i = 0; i < argcount; i++) {      /* copy each argument and set argv */
+  for (i = 0; i < argcount; i++)
+  { /* copy each argument and set argv */
     *cpp++ = cp;
     strcpy(cp, cp2);
     cp += strlen(cp) + 1;
     cp2 += strlen(cp2) + 1;
   }
   free(argbuf);
-  *cpp++ = NULL;			/* the last argv is a NULL pointer */
-  *cpp++ = NULL;			/* a NULL pointer for an empty envp */
+  *cpp++ = NULL; /* the last argv is a NULL pointer */
+  *cpp++ = NULL; /* a NULL pointer for an empty envp */
 
   return SUCCESS;
 }
-
