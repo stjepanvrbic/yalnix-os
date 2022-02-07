@@ -14,10 +14,17 @@ int KernelFork(void)
      * Copy the content of the parent process to the forked child.
      *     KCCopy() to copy kernelcontext into initPCB
      *     copy the contents of the current kernel stack into the new kernel stack frames in initPCB
+     * For each page in the old page table:
+            We need to reproduce its permissions and stuff in the new table.
+            If the page is valid, then:
+            we need to find a free frame (which means we need to figure out how to track which are free!)
+            we need to allocate it to this page in the new space;
+            we need to copy the contents of the frame for this page in the old table into this new frame.
      * How do we deal with returning two different things in two different processes?
      *     Maybe change somehow change something in the process of the child that will make it return 0 and push that process to the queue of processes?
      *     The parent can just easily return the pid of the child process.
      * If copying or creating the new process fails, return value ERROR.
+
     */
 }
 
@@ -25,6 +32,11 @@ int KernelExec(char filename, char *argvec)
 {
     /**
      * Wipe out the current process' Region 1
+     * We go through the page table:
+            We deallocate the old frames.
+            We then allocate new frames for the text, data, and stack for the initial state of the new program.
+            We populate these frames.
+            We set up the argv[i] array somewhere in the new address space, and feed main (in the new space) pointers (in the new space) to where we put them.
      * Start the execution of the program with the given filename while passing it its arguements argvec. 
     */
 }
