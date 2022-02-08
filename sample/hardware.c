@@ -15,10 +15,18 @@ u_long brk_offset = 0; // keep track of allocated stuff.
 kernel_page_table_t kernel_page_table;
 
 // Set up the Region 1 Page Table.
-kernel_page_table_t region_1_page_table;
+page_table_t region_1_page_table;
 
 // Flag to check whether vitual memory is enabled.
 unsigned char is_virtual_memory_enabled = 0;
+
+void PrintPageTable(kernel_page_table_t page_table) {
+    TracePrintf(0, "\n MAX_PT_LEN : %d\n", MAX_PT_LEN);
+    for (int page_id = 0; page_id < MAX_PT_LEN; page_id++)
+    {
+        TracePrintf(0, "\n page id : %d \t| valid: %d \t | prot: %d \t| pfn: %d\n", page_id, page_table.table[page_id].valid, page_table.table[page_id].prot, page_table.table[page_id].pfn);
+    }
+}
 
 extern int SetKernelBrk(void *addr)
 {
@@ -26,11 +34,15 @@ extern int SetKernelBrk(void *addr)
     // Have a flag to check whether vitual memory is enabled
     // If it is not enabled, just track how much the kernel brk
     // is being raised past the _kernel_orig_brk
-    if (is_virtual_memory_enabled == 0) {
-        
-    } else if (is_virtual_memory_enabled == 1) {
+    if (is_virtual_memory_enabled == 0)
+    {
+    }
+    else if (is_virtual_memory_enabled == 1)
+    {
         KERNEL_BRK = addr;
-    } else {
+    }
+    else
+    {
         return ERROR;
     }
     // After VM is enabled, act like standard Brk
@@ -66,7 +78,6 @@ extern void KernelStart(char **cmd_args, unsigned int pmem_size, UserContext *uc
 
     // Initialize up KERNEL_BRK.
     KERNEL_BRK = _kernel_orig_brk;
-
 
     // Variables.
     n_frames = pmem_size / PAGESIZE;
@@ -127,10 +138,10 @@ extern void KernelStart(char **cmd_args, unsigned int pmem_size, UserContext *uc
             page_table_entry.valid = 0;
             page_table_entry.prot = 0;
         }
-
         page_table_entry.pfn = page_id;
         kernel_page_table.table[page_id] = page_table_entry;
     }
+    PrintPageTable(kernel_page_table);
 
     // Indicate the virtual memory base address of the kernel page table.
     WriteRegister(REG_PTBR0, (unsigned int)&kernel_page_table.table);
