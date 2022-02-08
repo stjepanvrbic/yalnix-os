@@ -1,0 +1,50 @@
+** Hardware level 1 tracing enabled **
+** Yalnix level 1 tracing enabled **
+** User Prog level 1 tracing enabled **
+Hardware   ----
+Hardware   | Calling KernelStart
+Hardware   ----
+Yalnix     
+_____________YOOOO___________ In KernelStart
+Yalnix     
+ pmem_size : 4194304 
+Yalnix     
+ UserContext.vector : -1 
+Yalnix     
+ UserContext.code : 0 
+Yalnix     
+ UserContext.addr : (nil) 
+Yalnix     
+ UserContext.pc : (nil) 
+Yalnix     
+ UserContext.sp : (nil) 
+Yalnix     
+ UserContext.ebp : (nil) 
+Yalnix     
+ UserContext.regs[0] : 0 
+Yalnix     
+ UserContext.regs[1] : 0 
+Yalnix     
+ UserContext.regs[2] : 0 
+Yalnix     
+ UserContext.regs[3] : 0 
+Yalnix     
+ UserContext.regs[4] : 0 
+Yalnix     
+ UserContext.regs[5] : 0 
+Yalnix     
+ UserContext.regs[6] : 0 
+Yalnix     
+ UserContext.regs[7] : 0 
+Yalnix     
+ n_frames : 1000 
+Yalnix     
+ _kernel_data_start : 0x23db4 
+Yalnix     
+ _kernel_data_end : 0x12e000 
+Yalnix     
+ _kernel_orig_brk : 0x12e000 
+Hardware   ----
+Hardware   | Back from KernelStart
+Invalid exception frame: pc and sp both are 0Hardware   
+** Machine Halted **
