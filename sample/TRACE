@@ -39,22 +39,20 @@ Yalnix
 Yalnix     
  n_frames : 512 
 Yalnix     
- _kernel_data_start : 0x241cc 
+ _kernel_data_start : 0x24168 
 Yalnix     
  _kernel_data_end : 0x2e000 
 Yalnix     
  _kernel_orig_brk : 0x2e000 
 Yalnix     
  n_kernel_page_table_entries : 128 
-Hardware       | WriteRegister(REG_PTBR0,0x0248c0)
+Hardware       | WriteRegister(REG_PTBR0,0x024860)
 Hardware       | WriteRegister(REG_PTLR0,0x000080)
 Yalnix     
  n_region_1_page_table_entries : 128 
-Hardware       | WriteRegister(REG_PTBR1,0x024ac0)
+Hardware       | WriteRegister(REG_PTBR1,0x024a60)
 Hardware       | WriteRegister(REG_PTLR1,0x000080)
-Yalnix     
- DONSOS CHICOS
-Hardware   ----
-Hardware   | Back from KernelStart
-Invalid exception frame: pc and sp both are 0Hardware   
+Hardware       | WriteRegister(REG_VM_ENABLE,0x000001)
+EnableVM: kernel data PTE page 4 addr 0x00008000 prot READ|EXEC incorrect
+Hardware   
 ** Machine Halted **
