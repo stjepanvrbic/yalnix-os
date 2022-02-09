@@ -143,6 +143,9 @@ extern void KernelStart(char **cmd_args, unsigned int pmem_size, UserContext *uc
     }
     PrintPageTable(kernel_page_table);
 
+    TracePrintf(0, "reg write: %x\n", (unsigned int)&kernel_page_table.table);
+    TracePrintf(0, "reg limit: %x\n", n_kernel_page_table_entries);
+
     // Indicate the virtual memory base address of the kernel page table.
     WriteRegister(REG_PTBR0, (unsigned int)&kernel_page_table.table);
 

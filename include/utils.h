@@ -10,14 +10,16 @@
  * 
  */
 
+#include "../include/hardware.h"
 
-typedef struct queue{
+typedef struct queue
+{
     // Queue structure
     // Reusing queue from ENGS 50
     // The queue only uses malloc and free
 } queue_t;
 
-typedef struct bit_vector{
-    unsigned int bit_arr[VMEM_1_SIZE/__SIZEOF_INT__];   //
+typedef struct bit_vector
+{
+    unsigned char *bit_arr;
 } bit_vector_t;
-

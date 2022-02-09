@@ -39,7 +39,7 @@ Yalnix
 Yalnix     
  n_frames : 512 
 Yalnix     
- _kernel_data_start : 0x242a8 
+ _kernel_data_start : 0x242f4 
 Yalnix     
  _kernel_data_end : 0x2e000 
 Yalnix     
@@ -304,11 +304,13 @@ Yalnix
  page id : 126 	| valid: 1 	 | prot: 3 	| pfn: 126
 Yalnix     
  page id : 127 	| valid: 1 	 | prot: 3 	| pfn: 127
-Hardware       | WriteRegister(REG_PTBR0,0x0249c0)
+Yalnix     reg write: 24a00
+Yalnix     reg limit: 80
+Hardware       | WriteRegister(REG_PTBR0,0x024a00)
 Hardware       | WriteRegister(REG_PTLR0,0x000080)
 Yalnix     
  n_region_1_page_table_entries : 128 
-Hardware       | WriteRegister(REG_PTBR1,0x024bc0)
+Hardware       | WriteRegister(REG_PTBR1,0x024c00)
 Hardware       | WriteRegister(REG_PTLR1,0x000080)
 Hardware       | WriteRegister(REG_VM_ENABLE,0x000001)
 EnableVM: kernel data PTE page 4 addr 0x00008000 prot READ|EXEC incorrect
