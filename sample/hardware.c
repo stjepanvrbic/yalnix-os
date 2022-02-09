@@ -51,19 +51,53 @@ extern int SetKernelBrk(void *addr)
     // is being raised past the _kernel_orig_brk
     if (is_virtual_memory_enabled == 0)
     {
+        KERNEL_BRK = (void *)UP_TO_PAGE(addr);
+        // Potentially deal with assigning new frames in case we malloc a lot after setting up the Region 0 Page Table.
     }
-    else if (is_virtual_memory_enabled == 1)
+    // malloc() scenario:
+    // After VM is enabled, if brk is raised.
+    else if (is_virtual_memory_enabled == 1 && addr > KERNEL_BRK)
     {
-        KERNEL_BRK = addr;
+        void *KERNEL_BRK_old = KERNEL_BRK;
+        KERNEL_BRK = (void *)UP_TO_PAGE(addr);
+        unsigned int page_id_start = (unsigned int)KERNEL_BRK_old >> PAGESHIFT;
+        unsigned int page_id_end = (unsigned int)KERNEL_BRK >> PAGESHIFT;
+        for (unsigned int page_id = page_id_start; page_id < page_id_end; page_id++)
+        {
+            // Get next free frame id.
+            unsigned int next_free_frame_id = first_free_frame_idx();
+
+            // Mark pte at page_id as valid and map it to the free_frame.
+            kernel_page_table.table[page_id].valid = 1;
+            kernel_page_table.table[page_id].prot = PROT_READ | PROT_WRITE;
+            kernel_page_table.table[page_id].pfn = next_free_frame_id;
+            mem_frames.bit_arr[next_free_frame_id] = 1; // Mark as used.
+        }
     }
+    // free() scenario:
+    // After VM is enabled, if brk is lowered.
+    else if (is_virtual_memory_enabled == 1 && addr < KERNEL_BRK)
+    {
+        void *KERNEL_BRK_old = KERNEL_BRK;
+        KERNEL_BRK = (void *)UP_TO_PAGE(addr);
+        unsigned int page_id_start = (unsigned int)KERNEL_BRK >> PAGESHIFT;
+        unsigned int page_id_end = (unsigned int)KERNEL_BRK_old >> PAGESHIFT;
+        for (unsigned int page_id = page_id_start; page_id < page_id_end; page_id++)
+        {
+            mem_frames.bit_arr[kernel_page_table.table[page_id].pfn] = 0; // Mark as free.
+
+            // Mark pte at page_id as invalid and reset it.
+            kernel_page_table.table[page_id].valid = 0;
+            kernel_page_table.table[page_id].prot = PROT_NONE;
+            kernel_page_table.table[page_id].pfn = 0;
+        }
+    }
+    // Return 0 if success, ERROR if not
     else
     {
         return ERROR;
     }
-    // After VM is enabled, act like standard Brk
-    // Enable virtual memory, keeping track of whether the original brk
-    // was raised
-    // Return 0 if success, ERROR if not
+    return 0;
 }
 
 void DoIdle()
@@ -79,23 +113,31 @@ void create_idle_process(UserContext *user_context)
 {
 
     TracePrintf(0, "\n IN CREATE IDLE PROC\n");
-    idle_proc.user_context = *user_context;
+    idle_proc.user_context = user_context;
+    idle_proc.pid = helper_new_pid(region_1_page_table.table);
 
+    // Allocate a frame for a process stack.
     int free_frame = first_free_frame_idx();
 
-    // set the page to valid, this is the process stack
-    region_1_page_table.table[(VMEM_1_LIMIT >> PAGESHIFT) - 1].valid = 0x1;
-    region_1_page_table.table[(VMEM_1_LIMIT >> PAGESHIFT) - 1].prot = PROT_READ | PROT_WRITE;
-    region_1_page_table.table[(VMEM_1_LIMIT >> PAGESHIFT) - 1].pfn = free_frame;
-
-    // set that frame to used
-    mem_frames.bit_arr[free_frame] = 1;
+    // Set the page to valid.
+    unsigned int stack_vpn = ((VMEM_1_LIMIT - VMEM_0_LIMIT) >> PAGESHIFT) - 1;
+    region_1_page_table.table[stack_vpn].valid = 1;
+    region_1_page_table.table[stack_vpn].prot = PROT_READ | PROT_WRITE;
+    region_1_page_table.table[stack_vpn].pfn = free_frame;
+    mem_frames.bit_arr[free_frame] = 1; // set that frame to used
 
     WriteRegister(REG_TLB_FLUSH, TLB_FLUSH_1);
 
-    idle_proc.user_context.pc = &DoIdle;
+    // Set current instruction to DoIdle.
+    idle_proc.user_context->pc = &DoIdle;
+    // Set the stack pointer to the top of the stack.
+    idle_proc.user_context->sp = (void *)(VMEM_1_LIMIT - PAGESIZE);
+    TracePrintf(0, "\n VMEM_1_LIMIT : %p\n", VMEM_1_LIMIT);
+    TracePrintf(0, "\n stack_vpn : %d\n", stack_vpn);
+    TracePrintf(0, "\n VMEM_1_LIMIT-1 & PAGEMASK : %p\n", VMEM_1_LIMIT-1 & PAGEMASK);
 
-    idle_proc.user_context.sp = (void *)(VMEM_1_LIMIT - PAGESIZE);
+    TracePrintf(0, "\n idle_proc.user_context->sp : %p\n", idle_proc.user_context->sp);
+    // idle_proc.user_context->ebp = &region_1_page_table.table[stack_vpn];
 
     idle_proc.memory_context.user_page_table = region_1_page_table;
     idle_proc.memory_context.kernel_spage_table = kernel_page_table;
@@ -155,7 +197,7 @@ extern void KernelStart(char **cmd_args, unsigned int pmem_size, UserContext *uc
             mem_frames.bit_arr[page_id] = 1; // Mark as used.
         }
         // Mark the Kernel Heap.
-        else if ((unsigned int)_kernel_data_end <= i && i < ((unsigned int)_kernel_orig_brk + brk_offset))
+        else if ((unsigned int)_kernel_data_end <= i && i < ((unsigned int)KERNEL_BRK))
         {
             page_table_entry.valid = 1;
             page_table_entry.prot = PROT_READ | PROT_WRITE;
@@ -220,6 +262,7 @@ extern void KernelStart(char **cmd_args, unsigned int pmem_size, UserContext *uc
 
     // Enable Virtual Memory.
     WriteRegister(REG_VM_ENABLE, 1);
+    is_virtual_memory_enabled = 1;
 
     create_idle_process(uctxt);
 

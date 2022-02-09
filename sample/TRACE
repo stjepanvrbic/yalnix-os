@@ -9,29 +9,48 @@ _____________YOOOO___________ In KernelStart
 Yalnix     
  n_frames : 512 
 Yalnix     
- kernel data start 0x243d4
+ kernel data start 0x24654
 Yalnix     
  kernel data end 0x2e000
 Yalnix     
-pte addr 0x24b60
+pte addr 0x24de0
 Yalnix     
  free frames addr (mallocd) 0x26944
 Yalnix     
  n_kernel_page_table_entries: 128 
-Yalnix     reg write: 0x24b60
+Yalnix     reg write: 0x24de0
 Yalnix     reg limit: 128
-Hardware       | WriteRegister(REG_PTBR0,0x024b60)
+Hardware       | WriteRegister(REG_PTBR0,0x024de0)
 Hardware       | WriteRegister(REG_PTLR0,0x000080)
 Yalnix     
  n_region_1_page_table_entries : 128 
-Hardware       | WriteRegister(REG_PTBR1,0x025320)
+Hardware       | WriteRegister(REG_PTBR1,0x025420)
 Hardware       | WriteRegister(REG_PTLR1,0x000080)
 Hardware       | WriteRegister(REG_VM_ENABLE,0x000001)
 Yalnix     
  IN CREATE IDLE PROC
+Hardware   | HELPER assigning pid 0 to PTBR1 0x25420
 Hardware       | WriteRegister(REG_TLB_FLUSH,TLB_FLUSH_1)
+Yalnix     
+ VMEM_1_LIMIT : 0x200000
+Yalnix     
+ stack_vpn : 127
+Yalnix     
+ VMEM_1_LIMIT-1 & PAGEMASK : 0x1fe000
+Yalnix     
+ idle_proc.user_context->sp : 0x1fe000
 Yalnix     
  DONSOS CHICOS
 Hardware   ----
-Hardware   | HELPER WARNING: current PTBR1 does not match any process
-Hardware   | helper_maybort("unknown PTBR1"), ret addr = 0xf7f52c84 [libhardware.so].
+Hardware   | Back from KernelStart
+Hardware   | HELPER setting Proc 0 kstack to 126 127
+Hardware   | Off to usermode SP [region 1] 0x1fe000 | PC [region 0] 0x20f82
+Hardware   | pid 0 | PTBR1 0x025420 | kstack 126 127
+Hardware   ----
+Hardware   ----
+Hardware   | Trap Segmentation fault
+Hardware   | From usermode  SP [region 1] 0x1fe000 | PC [region 0] 0x20f82
+Hardware   | pid 0 | PTBR1 0x025420 | kstack 126 127
+Exception 3 occurred but VectorBase is NULL
+Hardware   
+** Machine Halted **

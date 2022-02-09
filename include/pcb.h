@@ -38,8 +38,8 @@ typedef struct pcb
     int pid;             // The process id
     void *p_parent_proc; // Pointer to the parent process PCB
 
-    UserContext user_context;     // UserContext information
-    KernelContext kernel_context; // KernelContext information
+    UserContext *user_context;     // UserContext information
+    KernelContext *kernel_context; // KernelContext information
 
     // queue_t children;          // Keeping track of the child processes
     // queue_t deceased_children; // Keeping track of the dead children
