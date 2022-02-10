@@ -54,7 +54,6 @@ void *interrupt_vector[TRAP_VECTOR_SIZE] = {
     NULL,
     NULL};
 
-
 /****************************************************** HELPERS ******************************************************/
 
 //---------------------------- PrintKernelPageTable ------------------------------
@@ -64,7 +63,6 @@ void *interrupt_vector[TRAP_VECTOR_SIZE] = {
 //--------------------------------------------------------------------------------
 void PrintKernelPageTable(kernel_page_table_t page_table)
 {
-    TracePrintf(0, "\n MAX_PT_LEN : %d\n", MAX_PT_LEN);
     for (int page_id = 0; page_id < MAX_PT_LEN; page_id++)
     {
         TracePrintf(0, "\n page id : %d \t| valid: %d \t | prot: %d \t| pfn: %d\n", page_id, page_table.table[page_id].valid, page_table.table[page_id].prot, page_table.table[page_id].pfn);
@@ -78,7 +76,6 @@ void PrintKernelPageTable(kernel_page_table_t page_table)
 //--------------------------------------------------------------------------------
 void PrintUserPageTable(page_table_t page_table)
 {
-    TracePrintf(0, "\n MAX_PT_LEN : %d\n", MAX_PT_LEN);
     for (int page_id = 0; page_id < MAX_PT_LEN; page_id++)
     {
         TracePrintf(0, "\n page id : %d \t| valid: %d \t | prot: %d \t| pfn: %d\n", page_id, page_table.table[page_id].valid, page_table.table[page_id].prot, page_table.table[page_id].pfn);
@@ -99,7 +96,6 @@ int first_free_frame_idx()
     }
     return i;
 }
-
 
 /*************************************************** IDLE PROCESS ****************************************************/
 
@@ -153,7 +149,6 @@ void create_idle_process(UserContext *user_context)
     idle_proc.memory_context.kernel_spage_table = kernel_page_table;
 }
 
-
 /*************************************************** START KERNEL ****************************************************/
 
 extern int SetKernelBrk(void *addr)
@@ -163,7 +158,7 @@ extern int SetKernelBrk(void *addr)
     // If it is not enabled, just track how much the kernel brk
     // is being raised past the _kernel_orig_brk
     if (is_virtual_memory_enabled == 0)
-    {   
+    {
         // Keep track of the offset
         brk_offset = (unsigned int)UP_TO_PAGE(addr) - (unsigned int)KERNEL_BRK;
         KERNEL_BRK = (void *)UP_TO_PAGE(addr);
