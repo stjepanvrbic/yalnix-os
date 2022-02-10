@@ -58,6 +58,9 @@
 #define PAGEMASK	(~PAGEOFFSET)
 #define PAGESHIFT	13
 
+#define SP_OFFSET 0x20
+#define SP_ADD_OFFSET(addr) ((long)(addr) - SP_OFFSET)
+
 
 #if (PAGESIZE != 0x2000)
 #warning "pagesize has changed: change alignment in kernel.x, user.x"

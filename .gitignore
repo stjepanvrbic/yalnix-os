@@ -1,1 +1,4 @@
 .vscode/
+sample/*.o
+sample/TRACE
+sample/TTYLOG*
