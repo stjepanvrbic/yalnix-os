@@ -8,7 +8,6 @@
  * Description: Declares the handlers used for the traps.
  */
 
-// INLCUDE NECESSARY FILES FROM YALNIX FRAMEWORK
 #include "hardware.h"
 
 //---------------------------- trap_kernel_handler -------------------------------

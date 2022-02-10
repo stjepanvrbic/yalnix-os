@@ -17,6 +17,8 @@ void trap_kernel_handler(UserContext *user_context)
     // Switch statement to invoke the correct syscall wrapper
 
     // return
+    TracePrintf(0, "\n------------ kernel trap triggered ----------------\n");
+    TracePrintf(0, "\nSyscall code : %x\n", user_context->code);
 }
 
 void trap_clock_handler(UserContext *user_context)
@@ -32,13 +34,16 @@ void trap_clock_handler(UserContext *user_context)
 void trap_illegal_handler(UserContext *user_context)
 {
     // Invoke Exit() syscall to abort current process
+    TracePrintf(0, "\n------------ illegal trap triggered ----------------\n");
+    TracePrintf(0, "\nTHIS TRAP IS NOT YET HANDLED\n");
 }
 
 void trap_memory_handler(UserContext *user_context)
 {
 
-    TracePrintf(0, "\n------------ memory trap triggered ----------------\n");
-    TracePrintf(0, "\noffending address: %p\n", user_context->addr);
+    // TracePrintf(0, "\n------------ memory trap triggered ----------------\n");
+    // TracePrintf(0, "\nOffending address: %p\n", user_context->addr);
+
     // Get the trap code from the user_context
     // Switch statement to invoke the correct syscall wrapper
     //      If trap is an exception to enlarge the current process's stack
@@ -51,11 +56,15 @@ void trap_memory_handler(UserContext *user_context)
     //          invoke Exit() syscall to abort current process
 
     // return
+    TracePrintf(0, "\n------------ memory trap triggered ----------------\n");
+    TracePrintf(0, "\nTHIS TRAP IS NOT YET HANDLED\n");
 }
 
 void trap_math_handler(UserContext *user_context)
 {
     // Invoke Exit() syscall to abort current process
+    TracePrintf(0, "\n------------ math trap triggered ----------------\n");
+    TracePrintf(0, "\nTHIS TRAP IS NOT YET HANDLED\n");
 }
 
 void trap_tty_receive_handler(UserContext *user_context)
@@ -67,6 +76,8 @@ void trap_tty_receive_handler(UserContext *user_context)
     //      buffer the input line for a subsequent TtyRead syscall by some user process ??
 
     // return
+    TracePrintf(0, "\n------------ tty receive trap triggered ----------------\n");
+    TracePrintf(0, "\nTHIS TRAP IS NOT YET HANDLED\n");
 }
 
 void trap_tty_transmit_handler(UserContext *user_context)
@@ -78,9 +89,13 @@ void trap_tty_transmit_handler(UserContext *user_context)
     //      start the next terminal output on this terminal
 
     // return
+    TracePrintf(0, "\n------------ tty transmit trap triggered ----------------\n");
+    TracePrintf(0, "\nTHIS TRAP IS NOT YET HANDLED\n");
 }
 
 void trap_disk_handler(UserContext *user_context)
 {
     // return
+    TracePrintf(0, "\n------------ disk trap triggered ----------------\n");
+    TracePrintf(0, "\nTHIS TRAP IS NOT YET HANDLED\n");
 }

@@ -312,13 +312,24 @@ extern void Pause (void);
 extern void TracePrintf (int, char *, ...);
 extern void DiskAccess (int, int, void *);
 
-/* 
- * Definitions of functions to be written by student
- */
-
+//------------------------------- SetKernelBrk -----------------------------------
+// Description: Set the kernel brk to the new address.
+// Inputs:      The new address of the kernel brk.
+// Outputs:     Kernel brk is set to its new address.
+//              Memory is set to valid or invalid depending if the kernel is 
+//              allocating or freeing memory.
+//--------------------------------------------------------------------------------
 extern int SetKernelBrk (void *);
 
-/* This is the primary entry point into the kernel */
+
+//-------------------------------- KernelStart -----------------------------------
+// Description: This is the primary entry point into the kernel.
+// Inputs:      Vector of strings containing the arguments.
+//              The physical memory size.
+//              The user context.
+// Outputs:     The kernel page table and a region 1 page table are initialized.
+//              Virtual Memory is enabled.
+//--------------------------------------------------------------------------------
 extern void KernelStart (char**, unsigned int, UserContext *);
 
 
