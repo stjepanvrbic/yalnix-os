@@ -41,8 +41,8 @@ void trap_illegal_handler(UserContext *user_context)
 void trap_memory_handler(UserContext *user_context)
 {
 
-    // TracePrintf(0, "\n------------ memory trap triggered ----------------\n");
-    // TracePrintf(0, "\nOffending address: %p\n", user_context->addr);
+    TracePrintf(0, "\n------------ memory trap triggered ----------------\n");
+    TracePrintf(0, "\nOffending address: %p\n", user_context->addr);
 
     // Get the trap code from the user_context
     // Switch statement to invoke the correct syscall wrapper

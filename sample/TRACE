@@ -6,97 +6,708 @@ Hardware   | Calling KernelStart
 Hardware   ----
 Yalnix     
 --------------- In KernelStart ---------------
-Hardware       | WriteRegister(REG_PTBR0,0x025220)
+Hardware       | WriteRegister(REG_PTBR0,0x025300)
 Hardware       | WriteRegister(REG_PTLR0,0x000080)
-Hardware       | WriteRegister(REG_PTBR1,0x025420)
+Hardware       | WriteRegister(REG_PTBR1,0x025500)
 Hardware       | WriteRegister(REG_PTLR1,0x000080)
 Hardware       | WriteRegister(REG_VM_ENABLE,0x000001)
-Hardware       | WriteRegister(REG_VECTOR_BASE,0x024920)
+Hardware       | WriteRegister(REG_VECTOR_BASE,0x0249e0)
 Yalnix     
  --------------- IN CREATE IDLE PROC ---------------
-Hardware   | HELPER assigning pid 0 to PTBR1 0x25420
+Hardware   | HELPER assigning pid 0 to PTBR1 0x25500
 Hardware       | WriteRegister(REG_TLB_FLUSH,TLB_FLUSH_1)
 Yalnix     
 --------------- Leaving KernelStart ---------------
 Hardware   ----
 Hardware   | Back from KernelStart
 Hardware   | HELPER setting Proc 0 kstack to 126 127
-Hardware   | Off to usermode SP [region 1] 0x1fe000 | PC [region 0] 0x20e1e
-Hardware   | pid 0 | PTBR1 0x025420 | kstack 126 127
-Hardware   ----
-Hardware       ----
-Hardware       | TLB miss p:254  -> pfn:024
-Hardware       | In SP [region 1] 0x1fe000 | PC [region 0] 0x20e1e
-Hardware       | pid 0 | PTBR1 0x025420 | kstack 126 127
-Hardware       ----
-Yalnix     	DoIdle
-Hardware   ----
-Hardware   | Trap Alarm clock
-Hardware   | From usermode  SP [region 1] 0x1fdea4 | PC [vdso] 0xf7f19079
-Hardware   | pid 0 | PTBR1 0x025420 | kstack 126 127
-Hardware   | Calling Yalnix handler 0x21580 for trap TRAP_CLOCK
-Hardware   ----
-Yalnix     
------------- clock trap triggered ----------------
-Hardware   ----
-Hardware   | Back from Yalnix handler 0x21580 for trap TRAP_CLOCK
-Hardware   | Off to usermode SP [region 1] 0x1fdea4 | PC [vdso] 0xf7f19079
-Hardware   | pid 0 | PTBR1 0x025420 | kstack 126 127
+Hardware   | Off to usermode SP [region 1] 0x1fffe0 | PC [region 0] 0x20e1e
+Hardware   | pid 0 | PTBR1 0x025500 | kstack 126 127
 Hardware   ----
 Yalnix     	DoIdle
 Hardware   ----
 Hardware   | Trap Alarm clock
-Hardware   | From usermode  SP [region 1] 0x1fdea4 | PC [vdso] 0xf7f19079
-Hardware   | pid 0 | PTBR1 0x025420 | kstack 126 127
-Hardware   | Calling Yalnix handler 0x21580 for trap TRAP_CLOCK
+Hardware   | From usermode  SP [region 1] 0x1ffe84 | PC [vdso] 0xf7f67079
+Hardware   | pid 0 | PTBR1 0x025500 | kstack 126 127
+Hardware   | Calling Yalnix handler 0x2156e for trap TRAP_CLOCK
 Hardware   ----
 Yalnix     
 ------------ clock trap triggered ----------------
 Hardware   ----
-Hardware   | Back from Yalnix handler 0x21580 for trap TRAP_CLOCK
-Hardware   | Off to usermode SP [region 1] 0x1fdea4 | PC [vdso] 0xf7f19079
-Hardware   | pid 0 | PTBR1 0x025420 | kstack 126 127
+Hardware   | Back from Yalnix handler 0x2156e for trap TRAP_CLOCK
+Hardware   | Off to usermode SP [region 1] 0x1ffe84 | PC [vdso] 0xf7f67079
+Hardware   | pid 0 | PTBR1 0x025500 | kstack 126 127
 Hardware   ----
 Yalnix     	DoIdle
 Hardware   ----
 Hardware   | Trap Alarm clock
-Hardware   | From usermode  SP [region 1] 0x1fdea4 | PC [vdso] 0xf7f19079
-Hardware   | pid 0 | PTBR1 0x025420 | kstack 126 127
-Hardware   | Calling Yalnix handler 0x21580 for trap TRAP_CLOCK
+Hardware   | From usermode  SP [region 1] 0x1ffe84 | PC [vdso] 0xf7f67079
+Hardware   | pid 0 | PTBR1 0x025500 | kstack 126 127
+Hardware   | Calling Yalnix handler 0x2156e for trap TRAP_CLOCK
 Hardware   ----
 Yalnix     
 ------------ clock trap triggered ----------------
 Hardware   ----
-Hardware   | Back from Yalnix handler 0x21580 for trap TRAP_CLOCK
-Hardware   | Off to usermode SP [region 1] 0x1fdea4 | PC [vdso] 0xf7f19079
-Hardware   | pid 0 | PTBR1 0x025420 | kstack 126 127
+Hardware   | Back from Yalnix handler 0x2156e for trap TRAP_CLOCK
+Hardware   | Off to usermode SP [region 1] 0x1ffe84 | PC [vdso] 0xf7f67079
+Hardware   | pid 0 | PTBR1 0x025500 | kstack 126 127
 Hardware   ----
 Yalnix     	DoIdle
 Hardware   ----
 Hardware   | Trap Alarm clock
-Hardware   | From usermode  SP [region 1] 0x1fdea4 | PC [vdso] 0xf7f19079
-Hardware   | pid 0 | PTBR1 0x025420 | kstack 126 127
-Hardware   | Calling Yalnix handler 0x21580 for trap TRAP_CLOCK
+Hardware   | From usermode  SP [region 1] 0x1ffe84 | PC [vdso] 0xf7f67079
+Hardware   | pid 0 | PTBR1 0x025500 | kstack 126 127
+Hardware   | Calling Yalnix handler 0x2156e for trap TRAP_CLOCK
 Hardware   ----
 Yalnix     
 ------------ clock trap triggered ----------------
 Hardware   ----
-Hardware   | Back from Yalnix handler 0x21580 for trap TRAP_CLOCK
-Hardware   | Off to usermode SP [region 1] 0x1fdea4 | PC [vdso] 0xf7f19079
-Hardware   | pid 0 | PTBR1 0x025420 | kstack 126 127
+Hardware   | Back from Yalnix handler 0x2156e for trap TRAP_CLOCK
+Hardware   | Off to usermode SP [region 1] 0x1ffe84 | PC [vdso] 0xf7f67079
+Hardware   | pid 0 | PTBR1 0x025500 | kstack 126 127
 Hardware   ----
 Yalnix     	DoIdle
 Hardware   ----
 Hardware   | Trap Alarm clock
-Hardware   | From usermode  SP [region 1] 0x1fdea4 | PC [vdso] 0xf7f19079
-Hardware   | pid 0 | PTBR1 0x025420 | kstack 126 127
-Hardware   | Calling Yalnix handler 0x21580 for trap TRAP_CLOCK
+Hardware   | From usermode  SP [region 1] 0x1ffe84 | PC [vdso] 0xf7f67079
+Hardware   | pid 0 | PTBR1 0x025500 | kstack 126 127
+Hardware   | Calling Yalnix handler 0x2156e for trap TRAP_CLOCK
 Hardware   ----
 Yalnix     
 ------------ clock trap triggered ----------------
 Hardware   ----
-Hardware   | Back from Yalnix handler 0x21580 for trap TRAP_CLOCK
-Hardware   | Off to usermode SP [region 1] 0x1fdea4 | PC [vdso] 0xf7f19079
-Hardware   | pid 0 | PTBR1 0x025420 | kstack 126 127
+Hardware   | Back from Yalnix handler 0x2156e for trap TRAP_CLOCK
+Hardware   | Off to usermode SP [region 1] 0x1ffe84 | PC [vdso] 0xf7f67079
+Hardware   | pid 0 | PTBR1 0x025500 | kstack 126 127
+Hardware   ----
+Yalnix     	DoIdle
+Hardware   ----
+Hardware   | Trap Alarm clock
+Hardware   | From usermode  SP [region 1] 0x1ffe84 | PC [vdso] 0xf7f67079
+Hardware   | pid 0 | PTBR1 0x025500 | kstack 126 127
+Hardware   | Calling Yalnix handler 0x2156e for trap TRAP_CLOCK
+Hardware   ----
+Yalnix     
+------------ clock trap triggered ----------------
+Hardware   ----
+Hardware   | Back from Yalnix handler 0x2156e for trap TRAP_CLOCK
+Hardware   | Off to usermode SP [region 1] 0x1ffe84 | PC [vdso] 0xf7f67079
+Hardware   | pid 0 | PTBR1 0x025500 | kstack 126 127
+Hardware   ----
+Yalnix     	DoIdle
+Hardware   ----
+Hardware   | Trap Alarm clock
+Hardware   | From usermode  SP [region 1] 0x1ffe84 | PC [vdso] 0xf7f67079
+Hardware   | pid 0 | PTBR1 0x025500 | kstack 126 127
+Hardware   | Calling Yalnix handler 0x2156e for trap TRAP_CLOCK
+Hardware   ----
+Yalnix     
+------------ clock trap triggered ----------------
+Hardware   ----
+Hardware   | Back from Yalnix handler 0x2156e for trap TRAP_CLOCK
+Hardware   | Off to usermode SP [region 1] 0x1ffe84 | PC [vdso] 0xf7f67079
+Hardware   | pid 0 | PTBR1 0x025500 | kstack 126 127
+Hardware   ----
+Yalnix     	DoIdle
+Hardware   ----
+Hardware   | Trap Alarm clock
+Hardware   | From usermode  SP [region 1] 0x1ffe84 | PC [vdso] 0xf7f67079
+Hardware   | pid 0 | PTBR1 0x025500 | kstack 126 127
+Hardware   | Calling Yalnix handler 0x2156e for trap TRAP_CLOCK
+Hardware   ----
+Yalnix     
+------------ clock trap triggered ----------------
+Hardware   ----
+Hardware   | Back from Yalnix handler 0x2156e for trap TRAP_CLOCK
+Hardware   | Off to usermode SP [region 1] 0x1ffe84 | PC [vdso] 0xf7f67079
+Hardware   | pid 0 | PTBR1 0x025500 | kstack 126 127
+Hardware   ----
+Yalnix     	DoIdle
+Hardware   ----
+Hardware   | Trap Alarm clock
+Hardware   | From usermode  SP [region 1] 0x1ffe84 | PC [vdso] 0xf7f67079
+Hardware   | pid 0 | PTBR1 0x025500 | kstack 126 127
+Hardware   | Calling Yalnix handler 0x2156e for trap TRAP_CLOCK
+Hardware   ----
+Yalnix     
+------------ clock trap triggered ----------------
+Hardware   ----
+Hardware   | Back from Yalnix handler 0x2156e for trap TRAP_CLOCK
+Hardware   | Off to usermode SP [region 1] 0x1ffe84 | PC [vdso] 0xf7f67079
+Hardware   | pid 0 | PTBR1 0x025500 | kstack 126 127
+Hardware   ----
+Yalnix     	DoIdle
+Hardware   ----
+Hardware   | Trap Alarm clock
+Hardware   | From usermode  SP [region 1] 0x1ffe84 | PC [vdso] 0xf7f67079
+Hardware   | pid 0 | PTBR1 0x025500 | kstack 126 127
+Hardware   | Calling Yalnix handler 0x2156e for trap TRAP_CLOCK
+Hardware   ----
+Yalnix     
+------------ clock trap triggered ----------------
+Hardware   ----
+Hardware   | Back from Yalnix handler 0x2156e for trap TRAP_CLOCK
+Hardware   | Off to usermode SP [region 1] 0x1ffe84 | PC [vdso] 0xf7f67079
+Hardware   | pid 0 | PTBR1 0x025500 | kstack 126 127
+Hardware   ----
+Yalnix     	DoIdle
+Hardware   ----
+Hardware   | Trap Alarm clock
+Hardware   | From usermode  SP [region 1] 0x1ffe84 | PC [vdso] 0xf7f67079
+Hardware   | pid 0 | PTBR1 0x025500 | kstack 126 127
+Hardware   | Calling Yalnix handler 0x2156e for trap TRAP_CLOCK
+Hardware   ----
+Yalnix     
+------------ clock trap triggered ----------------
+Hardware   ----
+Hardware   | Back from Yalnix handler 0x2156e for trap TRAP_CLOCK
+Hardware   | Off to usermode SP [region 1] 0x1ffe84 | PC [vdso] 0xf7f67079
+Hardware   | pid 0 | PTBR1 0x025500 | kstack 126 127
+Hardware   ----
+Yalnix     	DoIdle
+Hardware   ----
+Hardware   | Trap Alarm clock
+Hardware   | From usermode  SP [region 1] 0x1ffe84 | PC [vdso] 0xf7f67079
+Hardware   | pid 0 | PTBR1 0x025500 | kstack 126 127
+Hardware   | Calling Yalnix handler 0x2156e for trap TRAP_CLOCK
+Hardware   ----
+Yalnix     
+------------ clock trap triggered ----------------
+Hardware   ----
+Hardware   | Back from Yalnix handler 0x2156e for trap TRAP_CLOCK
+Hardware   | Off to usermode SP [region 1] 0x1ffe84 | PC [vdso] 0xf7f67079
+Hardware   | pid 0 | PTBR1 0x025500 | kstack 126 127
+Hardware   ----
+Yalnix     	DoIdle
+Hardware   ----
+Hardware   | Trap Alarm clock
+Hardware   | From usermode  SP [region 1] 0x1ffe84 | PC [vdso] 0xf7f67079
+Hardware   | pid 0 | PTBR1 0x025500 | kstack 126 127
+Hardware   | Calling Yalnix handler 0x2156e for trap TRAP_CLOCK
+Hardware   ----
+Yalnix     
+------------ clock trap triggered ----------------
+Hardware   ----
+Hardware   | Back from Yalnix handler 0x2156e for trap TRAP_CLOCK
+Hardware   | Off to usermode SP [region 1] 0x1ffe84 | PC [vdso] 0xf7f67079
+Hardware   | pid 0 | PTBR1 0x025500 | kstack 126 127
+Hardware   ----
+Yalnix     	DoIdle
+Hardware   ----
+Hardware   | Trap Alarm clock
+Hardware   | From usermode  SP [region 1] 0x1ffe84 | PC [vdso] 0xf7f67079
+Hardware   | pid 0 | PTBR1 0x025500 | kstack 126 127
+Hardware   | Calling Yalnix handler 0x2156e for trap TRAP_CLOCK
+Hardware   ----
+Yalnix     
+------------ clock trap triggered ----------------
+Hardware   ----
+Hardware   | Back from Yalnix handler 0x2156e for trap TRAP_CLOCK
+Hardware   | Off to usermode SP [region 1] 0x1ffe84 | PC [vdso] 0xf7f67079
+Hardware   | pid 0 | PTBR1 0x025500 | kstack 126 127
+Hardware   ----
+Yalnix     	DoIdle
+Hardware   ----
+Hardware   | Trap Alarm clock
+Hardware   | From usermode  SP [region 1] 0x1ffe84 | PC [vdso] 0xf7f67079
+Hardware   | pid 0 | PTBR1 0x025500 | kstack 126 127
+Hardware   | Calling Yalnix handler 0x2156e for trap TRAP_CLOCK
+Hardware   ----
+Yalnix     
+------------ clock trap triggered ----------------
+Hardware   ----
+Hardware   | Back from Yalnix handler 0x2156e for trap TRAP_CLOCK
+Hardware   | Off to usermode SP [region 1] 0x1ffe84 | PC [vdso] 0xf7f67079
+Hardware   | pid 0 | PTBR1 0x025500 | kstack 126 127
+Hardware   ----
+Yalnix     	DoIdle
+Hardware   ----
+Hardware   | Trap Alarm clock
+Hardware   | From usermode  SP [region 1] 0x1ffe84 | PC [vdso] 0xf7f67079
+Hardware   | pid 0 | PTBR1 0x025500 | kstack 126 127
+Hardware   | Calling Yalnix handler 0x2156e for trap TRAP_CLOCK
+Hardware   ----
+Yalnix     
+------------ clock trap triggered ----------------
+Hardware   ----
+Hardware   | Back from Yalnix handler 0x2156e for trap TRAP_CLOCK
+Hardware   | Off to usermode SP [region 1] 0x1ffe84 | PC [vdso] 0xf7f67079
+Hardware   | pid 0 | PTBR1 0x025500 | kstack 126 127
+Hardware   ----
+Yalnix     	DoIdle
+Hardware   ----
+Hardware   | Trap Alarm clock
+Hardware   | From usermode  SP [region 1] 0x1ffe84 | PC [vdso] 0xf7f67079
+Hardware   | pid 0 | PTBR1 0x025500 | kstack 126 127
+Hardware   | Calling Yalnix handler 0x2156e for trap TRAP_CLOCK
+Hardware   ----
+Yalnix     
+------------ clock trap triggered ----------------
+Hardware   ----
+Hardware   | Back from Yalnix handler 0x2156e for trap TRAP_CLOCK
+Hardware   | Off to usermode SP [region 1] 0x1ffe84 | PC [vdso] 0xf7f67079
+Hardware   | pid 0 | PTBR1 0x025500 | kstack 126 127
+Hardware   ----
+Yalnix     	DoIdle
+Hardware   ----
+Hardware   | Trap Alarm clock
+Hardware   | From usermode  SP [region 1] 0x1ffe84 | PC [vdso] 0xf7f67079
+Hardware   | pid 0 | PTBR1 0x025500 | kstack 126 127
+Hardware   | Calling Yalnix handler 0x2156e for trap TRAP_CLOCK
+Hardware   ----
+Yalnix     
+------------ clock trap triggered ----------------
+Hardware   ----
+Hardware   | Back from Yalnix handler 0x2156e for trap TRAP_CLOCK
+Hardware   | Off to usermode SP [region 1] 0x1ffe84 | PC [vdso] 0xf7f67079
+Hardware   | pid 0 | PTBR1 0x025500 | kstack 126 127
+Hardware   ----
+Yalnix     	DoIdle
+Hardware   ----
+Hardware   | Trap Alarm clock
+Hardware   | From usermode  SP [region 1] 0x1ffe84 | PC [vdso] 0xf7f67079
+Hardware   | pid 0 | PTBR1 0x025500 | kstack 126 127
+Hardware   | Calling Yalnix handler 0x2156e for trap TRAP_CLOCK
+Hardware   ----
+Yalnix     
+------------ clock trap triggered ----------------
+Hardware   ----
+Hardware   | Back from Yalnix handler 0x2156e for trap TRAP_CLOCK
+Hardware   | Off to usermode SP [region 1] 0x1ffe84 | PC [vdso] 0xf7f67079
+Hardware   | pid 0 | PTBR1 0x025500 | kstack 126 127
+Hardware   ----
+Yalnix     	DoIdle
+Hardware   ----
+Hardware   | Trap Alarm clock
+Hardware   | From usermode  SP [region 1] 0x1ffe84 | PC [vdso] 0xf7f67079
+Hardware   | pid 0 | PTBR1 0x025500 | kstack 126 127
+Hardware   | Calling Yalnix handler 0x2156e for trap TRAP_CLOCK
+Hardware   ----
+Yalnix     
+------------ clock trap triggered ----------------
+Hardware   ----
+Hardware   | Back from Yalnix handler 0x2156e for trap TRAP_CLOCK
+Hardware   | Off to usermode SP [region 1] 0x1ffe84 | PC [vdso] 0xf7f67079
+Hardware   | pid 0 | PTBR1 0x025500 | kstack 126 127
+Hardware   ----
+Yalnix     	DoIdle
+Hardware   ----
+Hardware   | Trap Alarm clock
+Hardware   | From usermode  SP [region 1] 0x1ffe84 | PC [vdso] 0xf7f67079
+Hardware   | pid 0 | PTBR1 0x025500 | kstack 126 127
+Hardware   | Calling Yalnix handler 0x2156e for trap TRAP_CLOCK
+Hardware   ----
+Yalnix     
+------------ clock trap triggered ----------------
+Hardware   ----
+Hardware   | Back from Yalnix handler 0x2156e for trap TRAP_CLOCK
+Hardware   | Off to usermode SP [region 1] 0x1ffe84 | PC [vdso] 0xf7f67079
+Hardware   | pid 0 | PTBR1 0x025500 | kstack 126 127
+Hardware   ----
+Yalnix     	DoIdle
+Hardware   ----
+Hardware   | Trap Alarm clock
+Hardware   | From usermode  SP [region 1] 0x1ffe84 | PC [vdso] 0xf7f67079
+Hardware   | pid 0 | PTBR1 0x025500 | kstack 126 127
+Hardware   | Calling Yalnix handler 0x2156e for trap TRAP_CLOCK
+Hardware   ----
+Yalnix     
+------------ clock trap triggered ----------------
+Hardware   ----
+Hardware   | Back from Yalnix handler 0x2156e for trap TRAP_CLOCK
+Hardware   | Off to usermode SP [region 1] 0x1ffe84 | PC [vdso] 0xf7f67079
+Hardware   | pid 0 | PTBR1 0x025500 | kstack 126 127
+Hardware   ----
+Yalnix     	DoIdle
+Hardware   ----
+Hardware   | Trap Alarm clock
+Hardware   | From usermode  SP [region 1] 0x1ffe84 | PC [vdso] 0xf7f67079
+Hardware   | pid 0 | PTBR1 0x025500 | kstack 126 127
+Hardware   | Calling Yalnix handler 0x2156e for trap TRAP_CLOCK
+Hardware   ----
+Yalnix     
+------------ clock trap triggered ----------------
+Hardware   ----
+Hardware   | Back from Yalnix handler 0x2156e for trap TRAP_CLOCK
+Hardware   | Off to usermode SP [region 1] 0x1ffe84 | PC [vdso] 0xf7f67079
+Hardware   | pid 0 | PTBR1 0x025500 | kstack 126 127
+Hardware   ----
+Yalnix     	DoIdle
+Hardware   ----
+Hardware   | Trap Alarm clock
+Hardware   | From usermode  SP [region 1] 0x1ffe84 | PC [vdso] 0xf7f67079
+Hardware   | pid 0 | PTBR1 0x025500 | kstack 126 127
+Hardware   | Calling Yalnix handler 0x2156e for trap TRAP_CLOCK
+Hardware   ----
+Yalnix     
+------------ clock trap triggered ----------------
+Hardware   ----
+Hardware   | Back from Yalnix handler 0x2156e for trap TRAP_CLOCK
+Hardware   | Off to usermode SP [region 1] 0x1ffe84 | PC [vdso] 0xf7f67079
+Hardware   | pid 0 | PTBR1 0x025500 | kstack 126 127
+Hardware   ----
+Yalnix     	DoIdle
+Hardware   ----
+Hardware   | Trap Alarm clock
+Hardware   | From usermode  SP [region 1] 0x1ffe84 | PC [vdso] 0xf7f67079
+Hardware   | pid 0 | PTBR1 0x025500 | kstack 126 127
+Hardware   | Calling Yalnix handler 0x2156e for trap TRAP_CLOCK
+Hardware   ----
+Yalnix     
+------------ clock trap triggered ----------------
+Hardware   ----
+Hardware   | Back from Yalnix handler 0x2156e for trap TRAP_CLOCK
+Hardware   | Off to usermode SP [region 1] 0x1ffe84 | PC [vdso] 0xf7f67079
+Hardware   | pid 0 | PTBR1 0x025500 | kstack 126 127
+Hardware   ----
+Yalnix     	DoIdle
+Hardware   ----
+Hardware   | Trap Alarm clock
+Hardware   | From usermode  SP [region 1] 0x1ffe84 | PC [vdso] 0xf7f67079
+Hardware   | pid 0 | PTBR1 0x025500 | kstack 126 127
+Hardware   | Calling Yalnix handler 0x2156e for trap TRAP_CLOCK
+Hardware   ----
+Yalnix     
+------------ clock trap triggered ----------------
+Hardware   ----
+Hardware   | Back from Yalnix handler 0x2156e for trap TRAP_CLOCK
+Hardware   | Off to usermode SP [region 1] 0x1ffe84 | PC [vdso] 0xf7f67079
+Hardware   | pid 0 | PTBR1 0x025500 | kstack 126 127
+Hardware   ----
+Yalnix     	DoIdle
+Hardware   ----
+Hardware   | Trap Alarm clock
+Hardware   | From usermode  SP [region 1] 0x1ffe84 | PC [vdso] 0xf7f67079
+Hardware   | pid 0 | PTBR1 0x025500 | kstack 126 127
+Hardware   | Calling Yalnix handler 0x2156e for trap TRAP_CLOCK
+Hardware   ----
+Yalnix     
+------------ clock trap triggered ----------------
+Hardware   ----
+Hardware   | Back from Yalnix handler 0x2156e for trap TRAP_CLOCK
+Hardware   | Off to usermode SP [region 1] 0x1ffe84 | PC [vdso] 0xf7f67079
+Hardware   | pid 0 | PTBR1 0x025500 | kstack 126 127
+Hardware   ----
+Yalnix     	DoIdle
+Hardware   ----
+Hardware   | Trap Alarm clock
+Hardware   | From usermode  SP [region 1] 0x1ffe84 | PC [vdso] 0xf7f67079
+Hardware   | pid 0 | PTBR1 0x025500 | kstack 126 127
+Hardware   | Calling Yalnix handler 0x2156e for trap TRAP_CLOCK
+Hardware   ----
+Yalnix     
+------------ clock trap triggered ----------------
+Hardware   ----
+Hardware   | Back from Yalnix handler 0x2156e for trap TRAP_CLOCK
+Hardware   | Off to usermode SP [region 1] 0x1ffe84 | PC [vdso] 0xf7f67079
+Hardware   | pid 0 | PTBR1 0x025500 | kstack 126 127
+Hardware   ----
+Yalnix     	DoIdle
+Hardware   ----
+Hardware   | Trap Alarm clock
+Hardware   | From usermode  SP [region 1] 0x1ffe84 | PC [vdso] 0xf7f67079
+Hardware   | pid 0 | PTBR1 0x025500 | kstack 126 127
+Hardware   | Calling Yalnix handler 0x2156e for trap TRAP_CLOCK
+Hardware   ----
+Yalnix     
+------------ clock trap triggered ----------------
+Hardware   ----
+Hardware   | Back from Yalnix handler 0x2156e for trap TRAP_CLOCK
+Hardware   | Off to usermode SP [region 1] 0x1ffe84 | PC [vdso] 0xf7f67079
+Hardware   | pid 0 | PTBR1 0x025500 | kstack 126 127
+Hardware   ----
+Yalnix     	DoIdle
+Hardware   ----
+Hardware   | Trap Alarm clock
+Hardware   | From usermode  SP [region 1] 0x1ffe84 | PC [vdso] 0xf7f67079
+Hardware   | pid 0 | PTBR1 0x025500 | kstack 126 127
+Hardware   | Calling Yalnix handler 0x2156e for trap TRAP_CLOCK
+Hardware   ----
+Yalnix     
+------------ clock trap triggered ----------------
+Hardware   ----
+Hardware   | Back from Yalnix handler 0x2156e for trap TRAP_CLOCK
+Hardware   | Off to usermode SP [region 1] 0x1ffe84 | PC [vdso] 0xf7f67079
+Hardware   | pid 0 | PTBR1 0x025500 | kstack 126 127
+Hardware   ----
+Yalnix     	DoIdle
+Hardware   ----
+Hardware   | Trap Alarm clock
+Hardware   | From usermode  SP [region 1] 0x1ffe84 | PC [vdso] 0xf7f67079
+Hardware   | pid 0 | PTBR1 0x025500 | kstack 126 127
+Hardware   | Calling Yalnix handler 0x2156e for trap TRAP_CLOCK
+Hardware   ----
+Yalnix     
+------------ clock trap triggered ----------------
+Hardware   ----
+Hardware   | Back from Yalnix handler 0x2156e for trap TRAP_CLOCK
+Hardware   | Off to usermode SP [region 1] 0x1ffe84 | PC [vdso] 0xf7f67079
+Hardware   | pid 0 | PTBR1 0x025500 | kstack 126 127
+Hardware   ----
+Yalnix     	DoIdle
+Hardware   ----
+Hardware   | Trap Alarm clock
+Hardware   | From usermode  SP [region 1] 0x1ffe84 | PC [vdso] 0xf7f67079
+Hardware   | pid 0 | PTBR1 0x025500 | kstack 126 127
+Hardware   | Calling Yalnix handler 0x2156e for trap TRAP_CLOCK
+Hardware   ----
+Yalnix     
+------------ clock trap triggered ----------------
+Hardware   ----
+Hardware   | Back from Yalnix handler 0x2156e for trap TRAP_CLOCK
+Hardware   | Off to usermode SP [region 1] 0x1ffe84 | PC [vdso] 0xf7f67079
+Hardware   | pid 0 | PTBR1 0x025500 | kstack 126 127
+Hardware   ----
+Yalnix     	DoIdle
+Hardware   ----
+Hardware   | Trap Alarm clock
+Hardware   | From usermode  SP [region 1] 0x1ffe84 | PC [vdso] 0xf7f67079
+Hardware   | pid 0 | PTBR1 0x025500 | kstack 126 127
+Hardware   | Calling Yalnix handler 0x2156e for trap TRAP_CLOCK
+Hardware   ----
+Yalnix     
+------------ clock trap triggered ----------------
+Hardware   ----
+Hardware   | Back from Yalnix handler 0x2156e for trap TRAP_CLOCK
+Hardware   | Off to usermode SP [region 1] 0x1ffe84 | PC [vdso] 0xf7f67079
+Hardware   | pid 0 | PTBR1 0x025500 | kstack 126 127
+Hardware   ----
+Yalnix     	DoIdle
+Hardware   ----
+Hardware   | Trap Alarm clock
+Hardware   | From usermode  SP [region 1] 0x1ffe84 | PC [vdso] 0xf7f67079
+Hardware   | pid 0 | PTBR1 0x025500 | kstack 126 127
+Hardware   | Calling Yalnix handler 0x2156e for trap TRAP_CLOCK
+Hardware   ----
+Yalnix     
+------------ clock trap triggered ----------------
+Hardware   ----
+Hardware   | Back from Yalnix handler 0x2156e for trap TRAP_CLOCK
+Hardware   | Off to usermode SP [region 1] 0x1ffe84 | PC [vdso] 0xf7f67079
+Hardware   | pid 0 | PTBR1 0x025500 | kstack 126 127
+Hardware   ----
+Yalnix     	DoIdle
+Hardware   ----
+Hardware   | Trap Alarm clock
+Hardware   | From usermode  SP [region 1] 0x1ffe84 | PC [vdso] 0xf7f67079
+Hardware   | pid 0 | PTBR1 0x025500 | kstack 126 127
+Hardware   | Calling Yalnix handler 0x2156e for trap TRAP_CLOCK
+Hardware   ----
+Yalnix     
+------------ clock trap triggered ----------------
+Hardware   ----
+Hardware   | Back from Yalnix handler 0x2156e for trap TRAP_CLOCK
+Hardware   | Off to usermode SP [region 1] 0x1ffe84 | PC [vdso] 0xf7f67079
+Hardware   | pid 0 | PTBR1 0x025500 | kstack 126 127
+Hardware   ----
+Yalnix     	DoIdle
+Hardware   ----
+Hardware   | Trap Alarm clock
+Hardware   | From usermode  SP [region 1] 0x1ffe84 | PC [vdso] 0xf7f67079
+Hardware   | pid 0 | PTBR1 0x025500 | kstack 126 127
+Hardware   | Calling Yalnix handler 0x2156e for trap TRAP_CLOCK
+Hardware   ----
+Yalnix     
+------------ clock trap triggered ----------------
+Hardware   ----
+Hardware   | Back from Yalnix handler 0x2156e for trap TRAP_CLOCK
+Hardware   | Off to usermode SP [region 1] 0x1ffe84 | PC [vdso] 0xf7f67079
+Hardware   | pid 0 | PTBR1 0x025500 | kstack 126 127
+Hardware   ----
+Yalnix     	DoIdle
+Hardware   ----
+Hardware   | Trap Alarm clock
+Hardware   | From usermode  SP [region 1] 0x1ffe84 | PC [vdso] 0xf7f67079
+Hardware   | pid 0 | PTBR1 0x025500 | kstack 126 127
+Hardware   | Calling Yalnix handler 0x2156e for trap TRAP_CLOCK
+Hardware   ----
+Yalnix     
+------------ clock trap triggered ----------------
+Hardware   ----
+Hardware   | Back from Yalnix handler 0x2156e for trap TRAP_CLOCK
+Hardware   | Off to usermode SP [region 1] 0x1ffe84 | PC [vdso] 0xf7f67079
+Hardware   | pid 0 | PTBR1 0x025500 | kstack 126 127
+Hardware   ----
+Yalnix     	DoIdle
+Hardware   ----
+Hardware   | Trap Alarm clock
+Hardware   | From usermode  SP [region 1] 0x1ffe84 | PC [vdso] 0xf7f67079
+Hardware   | pid 0 | PTBR1 0x025500 | kstack 126 127
+Hardware   | Calling Yalnix handler 0x2156e for trap TRAP_CLOCK
+Hardware   ----
+Yalnix     
+------------ clock trap triggered ----------------
+Hardware   ----
+Hardware   | Back from Yalnix handler 0x2156e for trap TRAP_CLOCK
+Hardware   | Off to usermode SP [region 1] 0x1ffe84 | PC [vdso] 0xf7f67079
+Hardware   | pid 0 | PTBR1 0x025500 | kstack 126 127
+Hardware   ----
+Yalnix     	DoIdle
+Hardware   ----
+Hardware   | Trap Alarm clock
+Hardware   | From usermode  SP [region 1] 0x1ffe84 | PC [vdso] 0xf7f67079
+Hardware   | pid 0 | PTBR1 0x025500 | kstack 126 127
+Hardware   | Calling Yalnix handler 0x2156e for trap TRAP_CLOCK
+Hardware   ----
+Yalnix     
+------------ clock trap triggered ----------------
+Hardware   ----
+Hardware   | Back from Yalnix handler 0x2156e for trap TRAP_CLOCK
+Hardware   | Off to usermode SP [region 1] 0x1ffe84 | PC [vdso] 0xf7f67079
+Hardware   | pid 0 | PTBR1 0x025500 | kstack 126 127
+Hardware   ----
+Yalnix     	DoIdle
+Hardware   ----
+Hardware   | Trap Alarm clock
+Hardware   | From usermode  SP [region 1] 0x1ffe84 | PC [vdso] 0xf7f67079
+Hardware   | pid 0 | PTBR1 0x025500 | kstack 126 127
+Hardware   | Calling Yalnix handler 0x2156e for trap TRAP_CLOCK
+Hardware   ----
+Yalnix     
+------------ clock trap triggered ----------------
+Hardware   ----
+Hardware   | Back from Yalnix handler 0x2156e for trap TRAP_CLOCK
+Hardware   | Off to usermode SP [region 1] 0x1ffe84 | PC [vdso] 0xf7f67079
+Hardware   | pid 0 | PTBR1 0x025500 | kstack 126 127
+Hardware   ----
+Yalnix     	DoIdle
+Hardware   ----
+Hardware   | Trap Alarm clock
+Hardware   | From usermode  SP [region 1] 0x1ffe84 | PC [vdso] 0xf7f67079
+Hardware   | pid 0 | PTBR1 0x025500 | kstack 126 127
+Hardware   | Calling Yalnix handler 0x2156e for trap TRAP_CLOCK
+Hardware   ----
+Yalnix     
+------------ clock trap triggered ----------------
+Hardware   ----
+Hardware   | Back from Yalnix handler 0x2156e for trap TRAP_CLOCK
+Hardware   | Off to usermode SP [region 1] 0x1ffe84 | PC [vdso] 0xf7f67079
+Hardware   | pid 0 | PTBR1 0x025500 | kstack 126 127
+Hardware   ----
+Yalnix     	DoIdle
+Hardware   ----
+Hardware   | Trap Alarm clock
+Hardware   | From usermode  SP [region 1] 0x1ffe84 | PC [vdso] 0xf7f67079
+Hardware   | pid 0 | PTBR1 0x025500 | kstack 126 127
+Hardware   | Calling Yalnix handler 0x2156e for trap TRAP_CLOCK
+Hardware   ----
+Yalnix     
+------------ clock trap triggered ----------------
+Hardware   ----
+Hardware   | Back from Yalnix handler 0x2156e for trap TRAP_CLOCK
+Hardware   | Off to usermode SP [region 1] 0x1ffe84 | PC [vdso] 0xf7f67079
+Hardware   | pid 0 | PTBR1 0x025500 | kstack 126 127
+Hardware   ----
+Yalnix     	DoIdle
+Hardware   ----
+Hardware   | Trap Alarm clock
+Hardware   | From usermode  SP [region 1] 0x1ffe84 | PC [vdso] 0xf7f67079
+Hardware   | pid 0 | PTBR1 0x025500 | kstack 126 127
+Hardware   | Calling Yalnix handler 0x2156e for trap TRAP_CLOCK
+Hardware   ----
+Yalnix     
+------------ clock trap triggered ----------------
+Hardware   ----
+Hardware   | Back from Yalnix handler 0x2156e for trap TRAP_CLOCK
+Hardware   | Off to usermode SP [region 1] 0x1ffe84 | PC [vdso] 0xf7f67079
+Hardware   | pid 0 | PTBR1 0x025500 | kstack 126 127
+Hardware   ----
+Yalnix     	DoIdle
+Hardware   ----
+Hardware   | Trap Alarm clock
+Hardware   | From usermode  SP [region 1] 0x1ffe84 | PC [vdso] 0xf7f67079
+Hardware   | pid 0 | PTBR1 0x025500 | kstack 126 127
+Hardware   | Calling Yalnix handler 0x2156e for trap TRAP_CLOCK
+Hardware   ----
+Yalnix     
+------------ clock trap triggered ----------------
+Hardware   ----
+Hardware   | Back from Yalnix handler 0x2156e for trap TRAP_CLOCK
+Hardware   | Off to usermode SP [region 1] 0x1ffe84 | PC [vdso] 0xf7f67079
+Hardware   | pid 0 | PTBR1 0x025500 | kstack 126 127
+Hardware   ----
+Yalnix     	DoIdle
+Hardware   ----
+Hardware   | Trap Alarm clock
+Hardware   | From usermode  SP [region 1] 0x1ffe84 | PC [vdso] 0xf7f67079
+Hardware   | pid 0 | PTBR1 0x025500 | kstack 126 127
+Hardware   | Calling Yalnix handler 0x2156e for trap TRAP_CLOCK
+Hardware   ----
+Yalnix     
+------------ clock trap triggered ----------------
+Hardware   ----
+Hardware   | Back from Yalnix handler 0x2156e for trap TRAP_CLOCK
+Hardware   | Off to usermode SP [region 1] 0x1ffe84 | PC [vdso] 0xf7f67079
+Hardware   | pid 0 | PTBR1 0x025500 | kstack 126 127
+Hardware   ----
+Yalnix     	DoIdle
+Hardware   ----
+Hardware   | Trap Alarm clock
+Hardware   | From usermode  SP [region 1] 0x1ffe84 | PC [vdso] 0xf7f67079
+Hardware   | pid 0 | PTBR1 0x025500 | kstack 126 127
+Hardware   | Calling Yalnix handler 0x2156e for trap TRAP_CLOCK
+Hardware   ----
+Yalnix     
+------------ clock trap triggered ----------------
+Hardware   ----
+Hardware   | Back from Yalnix handler 0x2156e for trap TRAP_CLOCK
+Hardware   | Off to usermode SP [region 1] 0x1ffe84 | PC [vdso] 0xf7f67079
+Hardware   | pid 0 | PTBR1 0x025500 | kstack 126 127
+Hardware   ----
+Yalnix     	DoIdle
+Hardware   ----
+Hardware   | Trap Alarm clock
+Hardware   | From usermode  SP [region 1] 0x1ffe84 | PC [vdso] 0xf7f67079
+Hardware   | pid 0 | PTBR1 0x025500 | kstack 126 127
+Hardware   | Calling Yalnix handler 0x2156e for trap TRAP_CLOCK
+Hardware   ----
+Yalnix     
+------------ clock trap triggered ----------------
+Hardware   ----
+Hardware   | Back from Yalnix handler 0x2156e for trap TRAP_CLOCK
+Hardware   | Off to usermode SP [region 1] 0x1ffe84 | PC [vdso] 0xf7f67079
+Hardware   | pid 0 | PTBR1 0x025500 | kstack 126 127
+Hardware   ----
+Yalnix     	DoIdle
+Hardware   ----
+Hardware   | Trap Alarm clock
+Hardware   | From usermode  SP [region 1] 0x1ffe84 | PC [vdso] 0xf7f67079
+Hardware   | pid 0 | PTBR1 0x025500 | kstack 126 127
+Hardware   | Calling Yalnix handler 0x2156e for trap TRAP_CLOCK
+Hardware   ----
+Yalnix     
+------------ clock trap triggered ----------------
+Hardware   ----
+Hardware   | Back from Yalnix handler 0x2156e for trap TRAP_CLOCK
+Hardware   | Off to usermode SP [region 1] 0x1ffe84 | PC [vdso] 0xf7f67079
+Hardware   | pid 0 | PTBR1 0x025500 | kstack 126 127
+Hardware   ----
+Yalnix     	DoIdle
+Hardware   ----
+Hardware   | Trap Alarm clock
+Hardware   | From usermode  SP [region 1] 0x1ffe84 | PC [vdso] 0xf7f67079
+Hardware   | pid 0 | PTBR1 0x025500 | kstack 126 127
+Hardware   | Calling Yalnix handler 0x2156e for trap TRAP_CLOCK
+Hardware   ----
+Yalnix     
+------------ clock trap triggered ----------------
+Hardware   ----
+Hardware   | Back from Yalnix handler 0x2156e for trap TRAP_CLOCK
+Hardware   | Off to usermode SP [region 1] 0x1ffe84 | PC [vdso] 0xf7f67079
+Hardware   | pid 0 | PTBR1 0x025500 | kstack 126 127
+Hardware   ----
+Yalnix     	DoIdle
+Hardware   ----
+Hardware   | Trap Alarm clock
+Hardware   | From usermode  SP [region 1] 0x1ffe84 | PC [vdso] 0xf7f67079
+Hardware   | pid 0 | PTBR1 0x025500 | kstack 126 127
+Hardware   | Calling Yalnix handler 0x2156e for trap TRAP_CLOCK
+Hardware   ----
+Yalnix     
+------------ clock trap triggered ----------------
+Hardware   ----
+Hardware   | Back from Yalnix handler 0x2156e for trap TRAP_CLOCK
+Hardware   | Off to usermode SP [region 1] 0x1ffe84 | PC [vdso] 0xf7f67079
+Hardware   | pid 0 | PTBR1 0x025500 | kstack 126 127
 Hardware   ----
 Yalnix     	DoIdle

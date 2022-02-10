@@ -97,7 +97,7 @@ int first_free_frame_idx()
     return i;
 }
 
-/*************************************************** IDLE PROCESS ****************************************************/
+/*************************************************** PROCESSES ****************************************************/
 
 void DoIdle()
 {
@@ -108,7 +108,7 @@ void DoIdle()
     }
 }
 
-void create_idle_process(UserContext *user_context)
+void create_process(UserContext *user_context, void (*func)())
 {
 
     TracePrintf(0, "\n --------------- IN CREATE IDLE PROC ---------------\n");
@@ -125,24 +125,14 @@ void create_idle_process(UserContext *user_context)
     region_1_page_table.table[stack_vpn].pfn = free_frame;
     mem_frames.bit_arr[free_frame] = 1; // set that frame to used
 
-    // Allocate a frame for a process stack.
-    int free_frame_2 = first_free_frame_idx();
-
-    // Set the 2nd to last page to valid.
-    unsigned int stack_vpn_2 = ((VMEM_1_LIMIT - VMEM_0_LIMIT) >> PAGESHIFT) - 2;
-    region_1_page_table.table[stack_vpn_2].valid = 1;
-    region_1_page_table.table[stack_vpn_2].prot = PROT_READ | PROT_WRITE;
-    region_1_page_table.table[stack_vpn_2].pfn = free_frame_2;
-    mem_frames.bit_arr[free_frame_2] = 1; // set that frame to used
-
     // Flush the TLB
     WriteRegister(REG_TLB_FLUSH, TLB_FLUSH_1);
 
     // Set current instruction to DoIdle.
-    idle_proc.user_context->pc = &DoIdle;
+    idle_proc.user_context->pc = func;
 
     // Set the stack pointer to the top of the stack.
-    idle_proc.user_context->sp = (void *)(VMEM_1_LIMIT - (PAGESIZE));
+    idle_proc.user_context->sp = (void *)SP_ADD_OFFSET(VMEM_1_LIMIT); // The stack pointer points 0x20 bytes below the high address of the last page in the stack.
 
     // Set the page tables of the idle pcb
     idle_proc.memory_context.user_page_table = region_1_page_table;
@@ -151,11 +141,12 @@ void create_idle_process(UserContext *user_context)
 
 /*************************************************** START KERNEL ****************************************************/
 
+// CAUTION: WE ADDED TOO MUCH FUNCTIONALITY TO SETKERNELBRK, IT SHOULD ONLY CHANGE THE KERNEL BRK AND NOT DEAL WITH MEMORY
 extern int SetKernelBrk(void *addr)
 {
     TracePrintf(0, "\n ------------------- In SetKernelBrk --------------- \n");
     // Have a flag to check whether vitual memory is enabled
-    // If it is not enabled, just track how much the kernel brk
+    // If it is not enabled, just track how much the kernel brk 
     // is being raised past the _kernel_orig_brk
     if (is_virtual_memory_enabled == 0)
     {
@@ -205,8 +196,10 @@ extern int SetKernelBrk(void *addr)
     // Return 0 if success, ERROR if not
     else
     {
+        TracePrintf(0, "\n ------------------- In SetKernelBrk : ERRROR --------------- \n");
         return ERROR;
     }
+    TracePrintf(0, "\n ------------------- Exiting SetKernelBrk --------------- \n");
     return 0;
 }
 
@@ -317,7 +310,7 @@ extern void KernelStart(char **cmd_args, unsigned int pmem_size, UserContext *uc
     // Set up the interrupt register
     WriteRegister(REG_VECTOR_BASE, (unsigned int)interrupt_vector);
 
-    create_idle_process(uctxt);
+    create_process(uctxt, &DoIdle);
 
     TracePrintf(0, "\n--------------- Leaving KernelStart ---------------\n");
 }
