@@ -1,6 +1,7 @@
 #include "../include/pcb.h"
 #include "../include/yalnix.h"
 #include <ykernel.h>
+#include "../include/traps.h"
 
 // Global Variables.
 void *KERNEL_BRK;
@@ -23,6 +24,25 @@ pcb_t current_proc;
 
 // Flag to check whether vitual memory is enabled.
 unsigned char is_virtual_memory_enabled = 0;
+
+// The interrupt vector.
+void *interrupt_vector[TRAP_VECTOR_SIZE] = {
+    &trap_kernel_handler,
+    &trap_clock_handler,
+    &trap_illegal_handler,
+    &trap_memory_handler,
+    &trap_math_handler,
+    &trap_tty_receive_handler,
+    &trap_tty_transmit_handler,
+    &trap_disk_handler,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL};
 
 void PrintPageTable(kernel_page_table_t page_table)
 {
@@ -126,15 +146,25 @@ void create_idle_process(UserContext *user_context)
     region_1_page_table.table[stack_vpn].pfn = free_frame;
     mem_frames.bit_arr[free_frame] = 1; // set that frame to used
 
+    // Allocate a frame for a process stack.
+    int free_frame_2 = first_free_frame_idx();
+
+    // Set the page to valid.
+    unsigned int stack_vpn_2 = ((VMEM_1_LIMIT - VMEM_0_LIMIT) >> PAGESHIFT) - 2;
+    region_1_page_table.table[stack_vpn_2].valid = 1;
+    region_1_page_table.table[stack_vpn_2].prot = PROT_READ | PROT_WRITE;
+    region_1_page_table.table[stack_vpn_2].pfn = free_frame_2;
+    mem_frames.bit_arr[free_frame_2] = 1; // set that frame to used
+
     WriteRegister(REG_TLB_FLUSH, TLB_FLUSH_1);
 
     // Set current instruction to DoIdle.
     idle_proc.user_context->pc = &DoIdle;
     // Set the stack pointer to the top of the stack.
-    idle_proc.user_context->sp = (void *)(VMEM_1_LIMIT - PAGESIZE);
+    idle_proc.user_context->sp = (void *)(VMEM_1_LIMIT - (PAGESIZE));
     TracePrintf(0, "\n VMEM_1_LIMIT : %p\n", VMEM_1_LIMIT);
     TracePrintf(0, "\n stack_vpn : %d\n", stack_vpn);
-    TracePrintf(0, "\n VMEM_1_LIMIT-1 & PAGEMASK : %p\n", VMEM_1_LIMIT-1 & PAGEMASK);
+    TracePrintf(0, "\n VMEM_1_LIMIT-1 & PAGEMASK : %p\n", VMEM_1_LIMIT - 1 & PAGEMASK);
 
     TracePrintf(0, "\n idle_proc.user_context->sp : %p\n", idle_proc.user_context->sp);
     // idle_proc.user_context->ebp = &region_1_page_table.table[stack_vpn];
@@ -159,7 +189,6 @@ extern void KernelStart(char **cmd_args, unsigned int pmem_size, UserContext *uc
 
     // Variables.
     n_frames = pmem_size / PAGESIZE;
-    TracePrintf(0, "\n n_frames : %d \n", n_frames);
 
     // Initializing all frames to free.
     mem_frames.bit_arr = malloc(sizeof(unsigned char) * n_frames);
@@ -263,6 +292,9 @@ extern void KernelStart(char **cmd_args, unsigned int pmem_size, UserContext *uc
     // Enable Virtual Memory.
     WriteRegister(REG_VM_ENABLE, 1);
     is_virtual_memory_enabled = 1;
+
+    // Set up the interrupt register
+    WriteRegister(REG_VECTOR_BASE, (unsigned int)interrupt_vector);
 
     create_idle_process(uctxt);
 

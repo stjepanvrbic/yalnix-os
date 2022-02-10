@@ -7,29 +7,30 @@ Hardware   ----
 Yalnix     
 _____________YOOOO___________ In KernelStart
 Yalnix     
- n_frames : 512 
+ ADDRESS CHECK : 200000 
 Yalnix     
- kernel data start 0x24654
+ kernel data start 0x248c0
 Yalnix     
  kernel data end 0x2e000
 Yalnix     
-pte addr 0x24de0
+pte addr 0x251a0
 Yalnix     
  free frames addr (mallocd) 0x26944
 Yalnix     
  n_kernel_page_table_entries: 128 
-Yalnix     reg write: 0x24de0
+Yalnix     reg write: 0x251a0
 Yalnix     reg limit: 128
-Hardware       | WriteRegister(REG_PTBR0,0x024de0)
+Hardware       | WriteRegister(REG_PTBR0,0x0251a0)
 Hardware       | WriteRegister(REG_PTLR0,0x000080)
 Yalnix     
  n_region_1_page_table_entries : 128 
-Hardware       | WriteRegister(REG_PTBR1,0x025420)
+Hardware       | WriteRegister(REG_PTBR1,0x0257e0)
 Hardware       | WriteRegister(REG_PTLR1,0x000080)
 Hardware       | WriteRegister(REG_VM_ENABLE,0x000001)
+Hardware       | WriteRegister(REG_VECTOR_BASE,0x0248e0)
 Yalnix     
  IN CREATE IDLE PROC
-Hardware   | HELPER assigning pid 0 to PTBR1 0x25420
+Hardware   | HELPER assigning pid 0 to PTBR1 0x257e0
 Hardware       | WriteRegister(REG_TLB_FLUSH,TLB_FLUSH_1)
 Yalnix     
  VMEM_1_LIMIT : 0x200000
@@ -44,13 +45,26 @@ Yalnix
 Hardware   ----
 Hardware   | Back from KernelStart
 Hardware   | HELPER setting Proc 0 kstack to 126 127
-Hardware   | Off to usermode SP [region 1] 0x1fe000 | PC [region 0] 0x20f82
-Hardware   | pid 0 | PTBR1 0x025420 | kstack 126 127
+Hardware   | Off to usermode SP [region 1] 0x1fe000 | PC [region 0] 0x20fc2
+Hardware   | pid 0 | PTBR1 0x0257e0 | kstack 126 127
 Hardware   ----
+Hardware       ----
+Hardware       | TLB miss p:254  -> pfn:024
+Hardware       | In SP [region 1] 0x1fe000 | PC [region 0] 0x20fc2
+Hardware       | pid 0 | PTBR1 0x0257e0 | kstack 126 127
+Hardware       ----
+Yalnix     	DoIdle
 Hardware   ----
-Hardware   | Trap Segmentation fault
-Hardware   | From usermode  SP [region 1] 0x1fe000 | PC [region 0] 0x20f82
-Hardware   | pid 0 | PTBR1 0x025420 | kstack 126 127
-Exception 3 occurred but VectorBase is NULL
-Hardware   
-** Machine Halted **
+Hardware   | Trap Alarm clock
+Hardware   | From usermode  SP [region 1] 0x1fdea4 | PC [vdso] 0xf7fc1079
+Hardware   | pid 0 | PTBR1 0x0257e0 | kstack 126 127
+Hardware   | Calling Yalnix handler 0x2167e for trap TRAP_CLOCK
+Hardware   ----
+Yalnix     
+------------ clock trap triggered ----------------
+Hardware   ----
+Hardware   | Back from Yalnix handler 0x2167e for trap TRAP_CLOCK
+Hardware   | Off to usermode SP [region 1] 0x1fdea4 | PC [vdso] 0xf7fc1079
+Hardware   | pid 0 | PTBR1 0x0257e0 | kstack 126 127
+Hardware   ----
+Yalnix     	DoIdle
