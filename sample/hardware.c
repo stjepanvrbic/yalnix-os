@@ -8,10 +8,7 @@
  * Description: Implements the kernel start and set kernel brk functions.
  */
 
-#include "../include/pcb.h"
-#include "../include/yalnix.h"
-#include <ykernel.h>
-#include "../include/traps.h"
+#include "../include/utils.h"
 
 // Global Variables.
 void *KERNEL_BRK;
@@ -31,6 +28,7 @@ page_table_t region_1_page_table;
 
 // Globals to store the idle process
 pcb_t idle_proc;
+pcb_t init_pcb;
 
 // Flag to check whether vitual memory is enabled.
 unsigned char is_virtual_memory_enabled = 0;
@@ -99,6 +97,11 @@ int first_free_frame_idx()
 
 /*************************************************** PROCESSES ****************************************************/
 
+//------------------------------------ DoIdle ------------------------------------
+// Description: Function that makes a process go idle.
+// Inputs:      None.
+// Outputs:     Outputs DoIdle to the console on every clock tick.
+//--------------------------------------------------------------------------------
 void DoIdle()
 {
     while (1)
@@ -108,6 +111,11 @@ void DoIdle()
     }
 }
 
+//------------------------------- create_process ---------------------------------
+// Description:
+// Inputs:
+// Outputs:
+//--------------------------------------------------------------------------------
 void create_process(UserContext *user_context, void (*func)())
 {
 
@@ -136,7 +144,84 @@ void create_process(UserContext *user_context, void (*func)())
 
     // Set the page tables of the idle pcb
     idle_proc.memory_context.user_page_table = region_1_page_table;
-    idle_proc.memory_context.kernel_spage_table = kernel_page_table;
+}
+
+//-------------------------- init_region1_page_table -----------------------------
+// Description: Initializes a Region 1 Page Table and marks everything as invalid.
+// Inputs:      None.
+// Outputs:     An user page table is initilaized and marked as invalid.
+//              That user page table is returned.
+//--------------------------------------------------------------------------------
+page_table_t init_region1_page_table()
+{
+    page_table_t temp_page_table;
+    unsigned int page_id = 0;
+    unsigned int n_region_1_page_table_entries = VMEM_1_SIZE / PAGESIZE;
+    // Set up a Region 1 page table.
+    for (unsigned int i = VMEM_1_BASE; i < VMEM_1_LIMIT; i += PAGESIZE)
+    {
+        page_id = i / PAGESIZE;
+        pte_t page_table_entry;
+
+        // Mark everything as invalid.
+        page_table_entry.valid = 0;
+        page_table_entry.prot = 0;
+        page_table_entry.pfn = 0;
+        temp_page_table.table[page_id] = page_table_entry;
+    }
+    return temp_page_table;
+}
+
+//------------------------------ new_kernel_stack --------------------------------
+// Description: Initialize two new frames for a kernel stack and mark them as valid.
+// Inputs:      None.
+// Outputs:     A kernel stack table is initilaized and marked as valid.
+//              That kernel stack table is returned.
+//--------------------------------------------------------------------------------
+kernel_stack_t new_kernel_stack()
+{
+    kernel_stack_t temp_stack;
+    pte_t page0;
+    pte_t page2;
+
+    // Find free frames in physical memory
+    u_long pfn1 = first_free_frame_idx();
+    u_long pfn2 = first_free_frame_idx();
+
+    // Mark them as used
+    mem_frames.bit_arr[pfn1] = 1;
+    mem_frames.bit_arr[pfn2] = 1;
+
+    // Initialize the page table entries as valid
+    page0.pfn = pfn1;
+    page0.valid = 1;
+    page0.prot = PROT_READ | PROT_WRITE;
+    page2.pfn = pfn2;
+    page2.valid = 1;
+    page2.prot = PROT_READ | PROT_WRITE;
+
+    // Copy the page table entries into the kernel stack
+    temp_stack.table[0] = page0;
+    temp_stack.table[1] = page2;
+
+    return temp_stack;
+}
+
+//-------------------------------- init_process ----------------------------------
+// Description:
+// Inputs:
+// Outputs:
+//--------------------------------------------------------------------------------
+void init_process(UserContext *user_context)
+{
+    init_pcb.user_context = user_context;
+    init_pcb.memory_context.user_page_table = init_region1_page_table();
+
+    // Set up a Region 1 page table.
+    init_pcb.pid = helper_new_pid(init_pcb.memory_context.user_page_table.table);
+
+    // Set up a Kernel stack table.
+    init_pcb.memory_context.kernel_stack = new_kernel_stack();
 }
 
 /*************************************************** START KERNEL ****************************************************/
@@ -287,14 +372,6 @@ extern void KernelStart(char **cmd_args, unsigned int pmem_size, UserContext *uc
         page_table_entry.prot = 0;
         page_table_entry.pfn = 0;
         region_1_page_table.table[page_id] = page_table_entry;
-
-        if (i == VMEM_1_LIMIT >> PAGESHIFT)
-        {
-            page_table_entry.valid = 1;
-            page_table_entry.prot = PROT_READ | PROT_WRITE;
-            page_table_entry.pfn = 0;
-            region_1_page_table.table[page_id] = page_table_entry;
-        }
     }
 
     // Indicate the virtual memory base address of the region 1 page table.

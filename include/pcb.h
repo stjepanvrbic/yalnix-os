@@ -10,8 +10,7 @@
  *
  */
 
-#include "hardware.h"
-#include "utils.h"
+#include "../include/utils.h"
 
 typedef struct page_table
 {
@@ -23,13 +22,18 @@ typedef struct kernel_page_table
     pte_t table[VMEM_0_SIZE / PAGESIZE]; // Kernel Page table for the process
 } kernel_page_table_t;
 
+typedef struct kernel_stack
+{
+    pte_t table[KERNEL_STACK_MAXSIZE / PAGESIZE];
+} kernel_stack_t;
+
 typedef struct memblock
 {
     void *brk;       // Pointer to the brk in Region 1
     void *kernel_sp; // Pointer to the top of the kernel stack
 
-    page_table_t user_page_table;           // Page table for the Region 1 process
-    kernel_page_table_t kernel_spage_table; // Page table for the kernel stack
+    page_table_t user_page_table; // Page table for the Region 1 process
+    kernel_stack_t kernel_stack;  // Page table for the kernel stack
 
 } memblock_t;
 
@@ -38,8 +42,8 @@ typedef struct pcb
     int pid;             // The process id
     void *p_parent_proc; // Pointer to the parent process PCB
 
-    UserContext *user_context;     // UserContext information
-    KernelContext *kernel_context; // KernelContext information
+    UserContext *user_context;    // UserContext information
+    KernelContext kernel_context; // KernelContext information
 
     // queue_t children;          // Keeping track of the child processes
     // queue_t deceased_children; // Keeping track of the dead children
