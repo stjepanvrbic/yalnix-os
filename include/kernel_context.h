@@ -11,7 +11,7 @@
  */
 
 
-#include "include/hardware.h"
+#include "hardware.h"
 
 //--------------------------------- KCSwitch ------------------------------------
 // Description:   

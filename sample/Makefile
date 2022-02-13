@@ -17,8 +17,8 @@ K_INCS = ../include/hardware.h ../include/ctype.h ../include/load_info.h ../incl
 U_SRC_DIR = ./test
 
 # What are the user c and include files?
-U_SRCS = *.c
-U_INCS = *.h
+U_SRCS = 
+U_INCS = 
 
 
 #==========================================================

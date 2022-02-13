@@ -8,10 +8,12 @@
  * Description: Implements the kernel start and set kernel brk functions.
  */
 
+
 #include "../include/pcb.h"
-#include "../include/yalnix.h"
-#include <ykernel.h>
 #include "../include/traps.h"
+
+#include <yalnix.h>
+#include <ykernel.h>
 
 // Global Variables.
 void *KERNEL_BRK;

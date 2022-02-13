@@ -10,8 +10,6 @@
  * 
  */
 
-#include "../include/hardware.h"
-
 typedef struct queue
 {
     // Queue structure
