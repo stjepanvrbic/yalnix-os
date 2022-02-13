@@ -9,26 +9,20 @@
  */
 
 #include "../include/utils.h"
+#include "../include/pcb.h"
+#include "../include/traps.h"
+#include "../include/hardware.h"
+#include "../include/kernel_context.h"
+#include <ykernel.h>
+#include <yalnix.h>
 
 // Global Variables.
 void *KERNEL_BRK;
 
-// Set up a way to track free frames (use a bit vector to track this)
-bit_vector_t mem_frames; // 0 for free, 1 for used.
 unsigned int n_frames;
 
 // Keep track of allocated stuff.
 unsigned int brk_offset = 0;
-
-// Set up the Kernel Page Table.
-kernel_page_table_t kernel_page_table;
-
-// Set up the Region 1 Page Table.
-page_table_t region_1_page_table;
-
-// Globals to store the idle process
-pcb_t idle_proc;
-pcb_t init_pcb;
 
 // Flag to check whether vitual memory is enabled.
 unsigned char is_virtual_memory_enabled = 0;
@@ -215,9 +209,11 @@ kernel_stack_t new_kernel_stack()
 void init_process(UserContext *user_context)
 {
     init_pcb.user_context = user_context;
-    init_pcb.memory_context.user_page_table = init_region1_page_table();
 
     // Set up a Region 1 page table.
+    init_pcb.memory_context.user_page_table = init_region1_page_table();
+
+    // Get a PID for the process
     init_pcb.pid = helper_new_pid(init_pcb.memory_context.user_page_table.table);
 
     // Set up a Kernel stack table.
@@ -387,7 +383,22 @@ extern void KernelStart(char **cmd_args, unsigned int pmem_size, UserContext *uc
     // Set up the interrupt register
     WriteRegister(REG_VECTOR_BASE, (unsigned int)interrupt_vector);
 
+    // Create idle process pcb and run the idle function
     create_process(uctxt, &DoIdle);
+
+    // Create init process pcb
+    init_process(uctxt);
+
+    TracePrintf(0, "\n--------------- About to Clone IDLE into INIT ---------------\n");
+    int status = KernelContextSwitch(KCCopy, (void *)&init_pcb, NULL);
+    TracePrintf(0, "\n--------------- Back from the clone! Am I IDLE or INIT? ---------------\n");
+
+    // Load init program
+    for (i = 0; i != NULL; i++)
+    {
+        // Count arguments and pass array with them to LoadProgram
+    }
+    status = LoadProgram(cmd_args[0], , &init_pcb);
 
     TracePrintf(0, "\n--------------- Leaving KernelStart ---------------\n");
 }

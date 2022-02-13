@@ -1,3 +1,4 @@
+#pragma once
 /*
  * Yalnix Support Software for Linux/x86
  *
@@ -38,7 +39,6 @@
 #include <sys/mman.h>
 #include <sys/param.h>
 #include <ucontext.h>
-#include "../include/utils.h"
 
 // Over the years, yalnix has been run on host systems with varying
 // page sizes. Here, we define standard sizes for the Yalnix platform
@@ -155,6 +155,8 @@ struct pte
 };
 
 typedef struct pte pte_t;
+
+int first_free_frame_idx();
 
 /*
  * Define the protection bits used in page table entries.
@@ -286,8 +288,6 @@ extern unsigned int ReadRegister(int);
 extern void Pause(void);
 extern void TracePrintf(int, char *, ...);
 extern void DiskAccess(int, int, void *);
-
-kernel_stack_t new_kernel_stack();
 
 //------------------------------- SetKernelBrk -----------------------------------
 // Description: Set the kernel brk to the new address.

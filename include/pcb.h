@@ -1,3 +1,4 @@
+#pragma once
 /* pcb.h ---
  *
  *
@@ -9,8 +10,9 @@
  *
  *
  */
-
-#include "../include/utils.h"
+#ifndef _pcb_h
+#define _pcb_h
+#include "hardware.h"
 
 typedef struct page_table
 {
@@ -57,3 +59,16 @@ typedef struct pcb
     memblock_t memory_context; // Memory context block for the process
 
 } pcb_t;
+
+kernel_stack_t new_kernel_stack();
+
+// Set up the Kernel Page Table.
+kernel_page_table_t kernel_page_table;
+
+// Set up the Region 1 Page Table.
+page_table_t region_1_page_table;
+
+// Globals to store the idle process
+pcb_t idle_proc;
+pcb_t init_pcb;
+#endif

@@ -1,3 +1,4 @@
+#pragma once
 /* utils.h ---
  *
  *
@@ -9,13 +10,8 @@
  *
  *
  */
-
-#include "../include/hardware.h"
-#include "../include/traps.h"
-#include "../include/yalnix.h"
-#include "../include/ykernel.h"
-#include "../include/pcb.h"
-#include "../include/kernel_context.h"
+#ifndef _utils_h
+#define _utils_h
 
 typedef struct queue
 {
@@ -28,3 +24,8 @@ typedef struct bit_vector
 {
     unsigned char *bit_arr;
 } bit_vector_t;
+
+// Set up a way to track free frames (use a bit vector to track this)
+bit_vector_t mem_frames; // 0 for free, 1 for used.
+
+#endif

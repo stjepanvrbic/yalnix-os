@@ -13,8 +13,11 @@
 /*
  * ==>> #include anything you need for your kernel here
  */
-#include <pcb.h>
-#include <kernel_context.h>
+#include "../include/pcb.h"
+#include "../include/kernel_context.h"
+#include "../include/utils.h"
+#include "../include/hardware.h"
+#include "../include/load_program.h"
 
 /*
  *  Load a program into an existing address space.  The program comes from
@@ -155,7 +158,12 @@ int LoadProgram(char *name, char *args[], pcb_t *proc)
 
   /*
    * ==>> You should perhaps check that malloc returned valid space
+   DONE
    */
+  if (cp2 == NULL || argbuf == NULL)
+  {
+    TracePrintf(3, "\nmalloc did not behave properly for cp2 or argbuf\n");
+  }
 
   for (i = 0; args[i] != NULL; i++)
   {
@@ -174,36 +182,81 @@ int LoadProgram(char *name, char *args[], pcb_t *proc)
    * ==>> curent process by walking through the R1 page table and,
    * ==>> for every valid page, free the pfn and mark the page invalid.
    */
+  // Throw away the old Region 1 page table.
+  unsigned int page_id;
+  for (unsigned int i = VMEM_1_BASE; i < VMEM_1_LIMIT; i += PAGESIZE)
+  {
+    page_id = i / PAGESIZE;
+    // If current page is valid, free it and mark it as invalid.
+    pte_t *page_table_entry = &proc->memory_context.user_page_table.table[page_id];
+    if (page_table_entry->valid == 1)
+    {
+      page_table_entry->valid = 0;                   // Mark it as invalid.
+      mem_frames.bit_arr[page_table_entry->pfn] = 0; // Mark this frame as free.
+    }
+  }
 
   /*
    * ==>> Then, build up the new region1.
    * ==>> (See the LoadProgram diagram in the manual.)
+   DONE BELOW
    */
+  unsigned int page_id;
+  page_table_t *user_page_table = &proc->memory_context.user_page_table;
 
   /*
    * ==>> First, text. Allocate "li.t_npg" physical pages and map them starting at
    * ==>> the "text_pg1" page in region 1 address space.
    * ==>> These pages should be marked valid, with a protection of
    * ==>> (PROT_READ | PROT_WRITE).
+   DONE
    */
+  for (page_id = text_pg1; page_id <= (text_pg1 + li.t_npg - 1); page_id++)
+  {
+    int new_frame_id = first_free_frame_idx();
+    mem_frames.bit_arr[new_frame_id] = 1; // Mark frame as used.
+    user_page_table->table[page_id].valid = 1;
+    user_page_table->table[page_id].pfn = new_frame_id;
+    user_page_table->table[page_id].prot = (PROT_READ | PROT_WRITE);
+  }
 
   /*
    * ==>> Then, data. Allocate "data_npg" physical pages and map them starting at
    * ==>> the  "data_pg1" in region 1 address space.
    * ==>> These pages should be marked valid, with a protection of
    * ==>> (PROT_READ | PROT_WRITE).
+   DONE
    */
+  for (page_id = data_pg1; page_id <= (data_pg1 + data_npg - 1); page_id++)
+  {
+    int new_frame_id = first_free_frame_idx();
+    mem_frames.bit_arr[new_frame_id] = 1; // Mark frame as used.
+    user_page_table->table[page_id].valid = 1;
+    user_page_table->table[page_id].pfn = new_frame_id;
+    user_page_table->table[page_id].prot = (PROT_READ | PROT_WRITE);
+  }
 
   /*
    * ==>> Then, stack. Allocate "stack_npg" physical pages and map them to the top
    * ==>> of the region 1 virtual address space.
    * ==>> These pages should be marked valid, with a
    * ==>> protection of (PROT_READ | PROT_WRITE).
+   DONE
    */
+  for (page_id = MAX_PT_LEN - stack_npg; page_id <= (data_pg1 + data_npg - 1); page_id++)
+  {
+    int new_frame_id = first_free_frame_idx();
+    mem_frames.bit_arr[new_frame_id] = 1; // Mark frame as used.
+    user_page_table->table[page_id].valid = 1;
+    user_page_table->table[page_id].pfn = new_frame_id;
+    user_page_table->table[page_id].prot = (PROT_READ | PROT_WRITE);
+  }
 
   /*
    * ==>> (Finally, make sure that there are no stale region1 mappings left in the TLB!)
+   DONE
    */
+  WriteRegister(REG_TLB_FLUSH, TLB_FLUSH_1);
 
   /*
    * All pages for the new address space are now in the page table.
@@ -244,7 +297,14 @@ int LoadProgram(char *name, char *args[], pcb_t *proc)
    * ==>> For each text page in region1, change the protection to (PROT_READ | PROT_EXEC).
    * ==>> If any of these page table entries is also in the TLB,
    * ==>> you will need to flush the old mapping.
+   DONE
    */
+
+  for (page_id = text_pg1; page_id <= (text_pg1 + li.t_npg - 1); page_id++)
+  {
+    user_page_table->table[page_id].prot = (PROT_READ | PROT_EXEC);
+  }
+  WriteRegister(REG_TLB_FLUSH, TLB_FLUSH_1);
 
   /*
    * Zero out the uninitialized data area
@@ -258,7 +318,9 @@ int LoadProgram(char *name, char *args[], pcb_t *proc)
   /*
    * ==>> (rewrite the line below to match your actual data structure)
    * ==>> proc->uc.pc = (caddr_t) li.entry;
+   HAD TO CAST TO void *
    */
+  proc->user_context->pc = (caddr_t)li.entry;
 
   /*
    * Now, finally, build the argument list on the new stack.

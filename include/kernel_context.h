@@ -1,3 +1,4 @@
+#pragma once
 /* kernel_context.h ---
  *
  *
@@ -9,8 +10,9 @@
  *
  *
  */
-
-#include "include/hardware.h"
+#ifndef _kernel_context_h
+#define _kernel_context_h
+#include "hardware.h"
 
 //--------------------------------- KCSwitch ------------------------------------
 // Description:
@@ -29,3 +31,4 @@ KernelContext *KCSwitch(KernelContext *kc_in,
 KernelContext *KCCopy(KernelContext *kc_in,
                       void *new_pcb_p,
                       void *not_used);
+#endif

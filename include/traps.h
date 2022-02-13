@@ -1,3 +1,4 @@
+#pragma once
 /* traps.h ---
  *
  *
@@ -7,7 +8,8 @@
  *
  * Description: Declares the handlers used for the traps.
  */
-
+#ifndef _traps_h
+#define _traps_h
 #include "hardware.h"
 
 //---------------------------- trap_kernel_handler -------------------------------
@@ -65,3 +67,4 @@ void trap_tty_transmit_handler(UserContext *user_context);
 // Outputs:
 //--------------------------------------------------------------------------------
 void trap_disk_handler(UserContext *user_context);
+#endif

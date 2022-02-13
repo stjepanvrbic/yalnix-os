@@ -10,6 +10,7 @@
  */
 
 #include "../include/traps.h"
+#include "../include/kernel_context.h"
 
 void trap_kernel_handler(UserContext *user_context)
 {
@@ -28,6 +29,10 @@ void trap_clock_handler(UserContext *user_context)
     //      perform context switch to the first process in the ready queue
     // Else
     //      dispatch idle
+
+    // Switch to init process
+    // KernelContext init_kernel_context = KCSwitch(/*KernelContext*/, (void *)&idle_proc, (void *)&init_pcb);
+
     TracePrintf(0, "\n------------ clock trap triggered ----------------\n");
 }
 

@@ -11,7 +11,7 @@ K_SRC_DIR = .
 
 # What are the kernel c and include files?
 K_SRCS = hardware.c traps.c kernel_context.c # ipc_syscalls.c process_coord_syscalls.c template.c io_syscalls.c sync_syscalls.c
-K_INCS = ../include/hardware.h ../include/ctype.h ../include/load_info.h ../include/yalnix.h ../include/ykernel.h ../include/ylib.h ../include/yuser.h ../include/traps.h ../include/kernel_context.h
+K_INCS = ../include/hardware.h ../include/ctype.h ../include/load_info.h ../include/yalnix.h ../include/ykernel.h ../include/ylib.h ../include/yuser.h ../include/traps.h ../include/kernel_context.h ../include/pcb.h ../include/utils.h
 
 # Where's your user source?
 U_SRC_DIR = ./test
