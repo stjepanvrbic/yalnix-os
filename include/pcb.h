@@ -44,7 +44,7 @@ typedef struct pcb
     int pid;             // The process id
     void *p_parent_proc; // Pointer to the parent process PCB
 
-    UserContext *user_context;    // UserContext information
+    UserContext user_context;     // UserContext information
     KernelContext kernel_context; // KernelContext information
 
     // queue_t children;          // Keeping track of the child processes
@@ -61,6 +61,7 @@ typedef struct pcb
 } pcb_t;
 
 kernel_stack_t new_kernel_stack();
+int first_free_frame_idx();
 
 // Set up the Kernel Page Table.
 kernel_page_table_t kernel_page_table;
@@ -68,7 +69,8 @@ kernel_page_table_t kernel_page_table;
 // Set up the Region 1 Page Table.
 page_table_t region_1_page_table;
 
-// Globals to store the idle process
-pcb_t idle_proc;
+// Globals to keep track of processes.
+pcb_t *curr_pcb;
+pcb_t idle_pcb;
 pcb_t init_pcb;
 #endif

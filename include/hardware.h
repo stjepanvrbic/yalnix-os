@@ -58,6 +58,8 @@
 #define SP_OFFSET 0x20
 #define SP_ADD_OFFSET(addr) ((long)(addr)-SP_OFFSET)
 
+#define N_R1_PTE_ENTRIES (VMEM_1_SIZE / PAGESIZE)
+
 #if (PAGESIZE != 0x2000)
 #warning "pagesize has changed: change alignment in kernel.x, user.x"
 #endif
@@ -156,8 +158,6 @@ struct pte
 
 typedef struct pte pte_t;
 
-int first_free_frame_idx();
-
 /*
  * Define the protection bits used in page table entries.
  *
@@ -199,6 +199,10 @@ struct kernel_context
 };
 
 typedef struct kernel_context KernelContext;
+
+// Global Variables.
+void *KERNEL_BRK;
+UserContext *curr_uctxt;
 
 /*
  *  Define the interrupt and exception vector numbers.  These numbers

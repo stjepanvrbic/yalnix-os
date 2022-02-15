@@ -22,11 +22,11 @@ KernelContext *KCSwitch(KernelContext *kc_in,
                         void *curr_pcb_p,
                         void *next_pcb_p)
 {
-    curr_pcb = (pcb_t *)curr_pcb_p;
-    next_pcb = (pcb_t *)next_pcb_p;
+    pcb_t *p_curr_pcb = (pcb_t *)curr_pcb_p;
+    pcb_t *p_next_pcb = (pcb_t *)next_pcb_p;
 
     // Save the current process kernel context
-    curr_pcb->kernel_context = *kc_in;
+    p_curr_pcb->kernel_context = *kc_in;
 
     void *kernel_stack_p0 = (void *)(VMEM_0_LIMIT - PAGESIZE);
     void *kernel_stack_p1 = (void *)(VMEM_0_LIMIT - 2 * PAGESIZE);
@@ -35,15 +35,15 @@ KernelContext *KCSwitch(KernelContext *kc_in,
     unsigned int kernel_stack_vpn1 = (unsigned int)kernel_stack_p1 & PAGEMASK;
 
     // Save the current process kernel stack in its PCB
-    curr_pcb->memory_context.kernel_stack.table[0] = kernel_page_table[kernel_stack_vpn0];
-    curr_pcb->memory_context.kernel_stack.table[1] = kernel_page_table[kernel_stack_vpn1];
+    p_curr_pcb->memory_context.kernel_stack.table[0] = kernel_page_table.table[kernel_stack_vpn0];
+    p_curr_pcb->memory_context.kernel_stack.table[1] = kernel_page_table.table[kernel_stack_vpn1];
 
     // Map the kernel page table to the new process kernel stack
-    kernel_page_table.table[kernel_stack_vpn0] = next_pcb->memory_context.kernel_stack.table[0];
-    kernel_page_table.table[kernel_stack_vpn1] = next_pcb->memory_context.kernel_stack.table[1];
+    kernel_page_table.table[kernel_stack_vpn0] = p_next_pcb->memory_context.kernel_stack.table[0];
+    kernel_page_table.table[kernel_stack_vpn1] = p_next_pcb->memory_context.kernel_stack.table[1];
 
     // Return the next process kernel context
-    return &next_pcb->kernel_context;
+    return &p_next_pcb->kernel_context;
 }
 
 void copy_page_contents(u_int8_t *dest, u_int8_t *src)

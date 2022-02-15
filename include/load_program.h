@@ -11,8 +11,8 @@
  *
  */
 
-#ifndef _kernel_context_h
-#define _kernel_context_h
+#ifndef _load_program_h
+#define _load_program_h
 #include "pcb.h"
 
 //--------------------------------- LoadProgram ---------------------------------

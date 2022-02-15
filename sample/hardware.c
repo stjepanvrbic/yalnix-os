@@ -13,11 +13,9 @@
 #include "../include/traps.h"
 #include "../include/hardware.h"
 #include "../include/kernel_context.h"
+#include "../include/load_program.h"
 #include <ykernel.h>
 #include <yalnix.h>
-
-// Global Variables.
-void *KERNEL_BRK;
 
 unsigned int n_frames;
 
@@ -53,7 +51,7 @@ void *interrupt_vector[TRAP_VECTOR_SIZE] = {
 // Inputs:      The kernel page table to be printed.
 // Outputs:     The kernel page table is printed to the console
 //--------------------------------------------------------------------------------
-void PrintKernelPageTable(kernel_page_table_t page_table)
+void PrintKernelPageTable(page_table_t page_table)
 {
     for (int page_id = 0; page_id < MAX_PT_LEN; page_id++)
     {
@@ -112,10 +110,7 @@ void DoIdle()
 //--------------------------------------------------------------------------------
 void create_process(UserContext *user_context, void (*func)())
 {
-
-    TracePrintf(0, "\n --------------- IN CREATE IDLE PROC ---------------\n");
-    idle_proc.user_context = user_context;
-    idle_proc.pid = helper_new_pid(region_1_page_table.table);
+    idle_pcb.pid = helper_new_pid(region_1_page_table.table);
 
     // Allocate a frame for a process stack.
     int free_frame = first_free_frame_idx();
@@ -131,13 +126,16 @@ void create_process(UserContext *user_context, void (*func)())
     WriteRegister(REG_TLB_FLUSH, TLB_FLUSH_1);
 
     // Set current instruction to DoIdle.
-    idle_proc.user_context->pc = func;
+    user_context->pc = func;
 
     // Set the stack pointer to the top of the stack.
-    idle_proc.user_context->sp = (void *)SP_ADD_OFFSET(VMEM_1_LIMIT); // The stack pointer points 0x20 bytes below the high address of the last page in the stack.
+    user_context->sp = (void *)SP_ADD_OFFSET(VMEM_1_LIMIT); // The stack pointer points 0x20 bytes below the high address of the last page in the stack.
 
     // Set the page tables of the idle pcb
-    idle_proc.memory_context.user_page_table = region_1_page_table;
+    idle_pcb.memory_context.user_page_table = region_1_page_table;
+
+    // Copy a copy of the user context into the pcb for idle_pcb
+    idle_pcb.user_context = *user_context;
 }
 
 //-------------------------- init_region1_page_table -----------------------------
@@ -150,10 +148,10 @@ page_table_t init_region1_page_table()
 {
     page_table_t temp_page_table;
     unsigned int page_id = 0;
-    unsigned int n_region_1_page_table_entries = VMEM_1_SIZE / PAGESIZE;
     // Set up a Region 1 page table.
     for (unsigned int i = VMEM_1_BASE; i < VMEM_1_LIMIT; i += PAGESIZE)
     {
+        TracePrintf(0, "\n-------------------- %x ----------------------\n", i);
         page_id = i / PAGESIZE;
         pte_t page_table_entry;
 
@@ -163,6 +161,7 @@ page_table_t init_region1_page_table()
         page_table_entry.pfn = 0;
         temp_page_table.table[page_id] = page_table_entry;
     }
+    TracePrintf(0, "\n-------------------- Return ----------------------\n");
     return temp_page_table;
 }
 
@@ -208,16 +207,40 @@ kernel_stack_t new_kernel_stack()
 //--------------------------------------------------------------------------------
 void init_process(UserContext *user_context)
 {
-    init_pcb.user_context = user_context;
-
+    // FREE PAGE TABLE WHEN RETIRING PROCESS
+    page_table_t *temp_page_table = malloc(sizeof(page_table_t));
+    unsigned int page_id = 0;
     // Set up a Region 1 page table.
-    init_pcb.memory_context.user_page_table = init_region1_page_table();
+    for (unsigned int i = VMEM_1_BASE; i < VMEM_1_LIMIT; i += PAGESIZE)
+    {
+        TracePrintf(0, "\n-------------------- %x ----------------------\n", i);
+        helper_check_heap("CHECKING HEAP");
+        page_id = i / PAGESIZE;
+        pte_t page_table_entry;
+
+        // Mark everything as invalid.
+        page_table_entry.valid = 0;
+        page_table_entry.prot = 0;
+        page_table_entry.pfn = 0;
+        temp_page_table->table[page_id] = page_table_entry;
+    }
+
+    init_pcb.memory_context.user_page_table = *temp_page_table;
 
     // Get a PID for the process
     init_pcb.pid = helper_new_pid(init_pcb.memory_context.user_page_table.table);
 
     // Set up a Kernel stack table.
     init_pcb.memory_context.kernel_stack = new_kernel_stack();
+
+    // Indicate the virtual memory base address of the region 1 page table.
+    WriteRegister(REG_PTBR1, (unsigned int)init_pcb.memory_context.user_page_table.table);
+
+    // Indicate the number of page table entries in the region 1 page table.
+    WriteRegister(REG_PTLR1, N_R1_PTE_ENTRIES);
+
+    // Make a copy of the user context int the init PCB
+    init_pcb.user_context = *user_context;
 }
 
 /*************************************************** START KERNEL ****************************************************/
@@ -356,7 +379,6 @@ extern void KernelStart(char **cmd_args, unsigned int pmem_size, UserContext *uc
     WriteRegister(REG_PTLR0, n_kernel_page_table_entries);
 
     page_id = 0;
-    unsigned int n_region_1_page_table_entries = VMEM_1_SIZE / PAGESIZE;
     // Set up a Region 1 page table.
     for (unsigned int i = VMEM_1_BASE; i < VMEM_1_LIMIT; i += PAGESIZE)
     {
@@ -374,7 +396,7 @@ extern void KernelStart(char **cmd_args, unsigned int pmem_size, UserContext *uc
     WriteRegister(REG_PTBR1, (unsigned int)region_1_page_table.table);
 
     // Indicate the number of page table entries in the region 1 page table.
-    WriteRegister(REG_PTLR1, n_region_1_page_table_entries);
+    WriteRegister(REG_PTLR1, N_R1_PTE_ENTRIES);
 
     // Enable Virtual Memory.
     WriteRegister(REG_VM_ENABLE, 1);
@@ -384,21 +406,48 @@ extern void KernelStart(char **cmd_args, unsigned int pmem_size, UserContext *uc
     WriteRegister(REG_VECTOR_BASE, (unsigned int)interrupt_vector);
 
     // Create idle process pcb and run the idle function
+    TracePrintf(0, "\n --------------- IN CREATE IDLE PROC ---------------\n");
     create_process(uctxt, &DoIdle);
+    TracePrintf(0, "\n--------------- LEFT CREATE IDLE PROC ---------------\n");
 
-    // Create init process pcb
+    // Bookkeping to keep track of the currently running process
+    curr_pcb = &idle_pcb;
+
+    // Create init process pcb and map the region 1 page table to it
+    TracePrintf(0, "\n--------------- IN CREATE INIT PROC ---------------\n");
     init_process(uctxt);
+    TracePrintf(0, "\n--------------- LEFT CREATE INIT PROC ---------------\n");
 
+    // Clone idle into init
     TracePrintf(0, "\n--------------- About to Clone IDLE into INIT ---------------\n");
-    int status = KernelContextSwitch(KCCopy, (void *)&init_pcb, NULL);
+    int status = KernelContextSwitch(KCCopy, (void *)curr_pcb, NULL);
+    if (status != 0)
+    {
+        TracePrintf(0, "\n--------------- Kernel Context Switch Failed ---------------\n");
+    }
     TracePrintf(0, "\n--------------- Back from the clone! Am I IDLE or INIT? ---------------\n");
 
-    // Load init program
-    for (i = 0; i != NULL; i++)
+    // if (cmd_args[0] == NULL)
+    // {
+    //     // Load init executable into the region 1 page table of the init process
+    //     TracePrintf(0, "\n--------------- About to Load INIT ---------------\n");
+    //     status = LoadProgram("init", NULL, &init_pcb);
+    //     if (status != 0)
+    //     {
+    //         TracePrintf(0, "\n--------------- Load Program Failed ---------------\n");
+    //     }
+    //     TracePrintf(0, "\n--------------- Back from Loading INIT? ---------------\n");
+    // }
+
+    // Load init executable into the region 1 page table of the init process
+    TracePrintf(0, "\n--------------- About to Load INIT ---------------\n");
+    status = LoadProgram(cmd_args[0], cmd_args, &init_pcb);
+
+    if (status != 0)
     {
-        // Count arguments and pass array with them to LoadProgram
+        TracePrintf(0, "\n--------------- Load Program Failed ---------------\n");
     }
-    status = LoadProgram(cmd_args[0], , &init_pcb);
+    TracePrintf(0, "\n--------------- Back from Loading INIT? ---------------\n");
 
     TracePrintf(0, "\n--------------- Leaving KernelStart ---------------\n");
 }

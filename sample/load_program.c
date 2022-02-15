@@ -148,7 +148,7 @@ int LoadProgram(char *name, char *args[], pcb_t *proc)
    * ==>> proc->uc.sp = cp2;
    DONE
    */
-  proc->user_context->sp = cp2;
+  proc->user_context.sp = cp2;
 
   /*
    * Now save the arguments in a separate buffer in region 0, since
@@ -201,7 +201,6 @@ int LoadProgram(char *name, char *args[], pcb_t *proc)
    * ==>> (See the LoadProgram diagram in the manual.)
    DONE BELOW
    */
-  unsigned int page_id;
   page_table_t *user_page_table = &proc->memory_context.user_page_table;
 
   /*
@@ -320,7 +319,7 @@ int LoadProgram(char *name, char *args[], pcb_t *proc)
    * ==>> proc->uc.pc = (caddr_t) li.entry;
    HAD TO CAST TO void *
    */
-  proc->user_context->pc = (caddr_t)li.entry;
+  proc->user_context.pc = (caddr_t)li.entry;
 
   /*
    * Now, finally, build the argument list on the new stack.
