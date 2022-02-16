@@ -103,12 +103,12 @@ void DoIdle()
     }
 }
 
-//------------------------------- create_process ---------------------------------
+//------------------------------- create_idle_process ---------------------------------
 // Description:
 // Inputs:
 // Outputs:
 //--------------------------------------------------------------------------------
-void create_process(UserContext *user_context, void (*func)())
+void create_idle_process(UserContext *user_context, void (*func)())
 {
     idle_pcb.pid = helper_new_pid(region_1_page_table.table);
 
@@ -209,12 +209,13 @@ void init_process(UserContext *user_context)
 {
     // FREE PAGE TABLE WHEN RETIRING PROCESS
     page_table_t *temp_page_table = malloc(sizeof(page_table_t));
+    TracePrintf(0, "-------------------------- init pt addr %p-----------------", temp_page_table);
     unsigned int page_id = 0;
     // Set up a Region 1 page table.
     for (unsigned int i = VMEM_1_BASE; i < VMEM_1_LIMIT; i += PAGESIZE)
     {
+
         TracePrintf(0, "\n-------------------- %x ----------------------\n", i);
-        helper_check_heap("CHECKING HEAP");
         page_id = i / PAGESIZE;
         pte_t page_table_entry;
 
@@ -312,6 +313,9 @@ extern void KernelStart(char **cmd_args, unsigned int pmem_size, UserContext *uc
     TracePrintf(0, "\n--------------- In KernelStart ---------------\n");
     int i = 0;
 
+    TracePrintf(0, "\n------------------------ data start: %p----------------------\n", _kernel_data_start);
+    TracePrintf(0, "\n------------------------ data end: %p----------------------\n", _kernel_data_end);
+
     // Initialize up KERNEL_BRK.
     KERNEL_BRK = _kernel_orig_brk;
 
@@ -407,7 +411,7 @@ extern void KernelStart(char **cmd_args, unsigned int pmem_size, UserContext *uc
 
     // Create idle process pcb and run the idle function
     TracePrintf(0, "\n --------------- IN CREATE IDLE PROC ---------------\n");
-    create_process(uctxt, &DoIdle);
+    create_idle_process(uctxt, &DoIdle);
     TracePrintf(0, "\n--------------- LEFT CREATE IDLE PROC ---------------\n");
 
     // Bookkeping to keep track of the currently running process
