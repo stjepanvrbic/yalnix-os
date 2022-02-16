@@ -29,14 +29,16 @@ KernelContext *KCSwitch(KernelContext *kc_in,
     p_curr_pcb->kernel_context = *kc_in;
 
     void *kernel_stack_p0 = (void *)(VMEM_0_LIMIT - PAGESIZE);
-    void *kernel_stack_p1 = (void *)(VMEM_0_LIMIT - 2 * PAGESIZE);
+    void *kernel_stack_p1 = (void *)(VMEM_0_LIMIT - (2 * PAGESIZE));
 
-    unsigned int kernel_stack_vpn0 = (unsigned int)kernel_stack_p0 & PAGEMASK;
-    unsigned int kernel_stack_vpn1 = (unsigned int)kernel_stack_p1 & PAGEMASK;
+    unsigned int kernel_stack_vpn0 = (unsigned int)kernel_stack_p0 >> PAGESHIFT;
+    unsigned int kernel_stack_vpn1 = (unsigned int)kernel_stack_p1 >> PAGESHIFT;
 
     // Save the current process kernel stack in its PCB
     p_curr_pcb->memory_context.kernel_stack.table[0] = kernel_page_table.table[kernel_stack_vpn0];
     p_curr_pcb->memory_context.kernel_stack.table[1] = kernel_page_table.table[kernel_stack_vpn1];
+
+    TracePrintf(0, "\n-------------------- vpn0: %d, vpn1: %d-----------------------\n", kernel_stack_vpn0, kernel_stack_vpn1);
 
     // Map the kernel page table to the new process kernel stack
     kernel_page_table.table[kernel_stack_vpn0] = p_next_pcb->memory_context.kernel_stack.table[0];
@@ -50,7 +52,7 @@ void copy_page_contents(u_int8_t *dest, u_int8_t *src)
 {
     for (int i = 0; i < PAGESIZE; i++)
     {
-        src[0] = dest[0];
+        src[i] = dest[i];
     }
 }
 
@@ -68,20 +70,25 @@ KernelContext *KCCopy(KernelContext *kc_in,
     kernel_stack_t new_k_stack = new_kernel_stack();
     new_pcb->memory_context.kernel_stack = new_k_stack;
 
+    // Get pointers to the two kernel stack pages
     void *old_stack_page0_p = (void *)(VMEM_0_LIMIT - PAGESIZE);
     void *old_stack_page1_p = (void *)(VMEM_0_LIMIT - 2 * PAGESIZE);
+
+    // Get pointers to the two pages below the kernel stack
     void *new_stack_page0_p = (void *)(VMEM_0_LIMIT - 3 * PAGESIZE);
     void *new_stack_page1_p = (void *)(VMEM_0_LIMIT - 4 * PAGESIZE);
 
-    unsigned int new_stack_vpn0 = (unsigned int)new_stack_page0_p & PAGEMASK;
-    unsigned int new_stack_vpn1 = (unsigned int)new_stack_page1_p & PAGEMASK;
+    // Go from addresses to VPNs
+    unsigned int new_stack_vpn0 = (unsigned int)new_stack_page0_p >> PAGESHIFT;
+    unsigned int new_stack_vpn1 = (unsigned int)new_stack_page1_p >> PAGESHIFT;
 
     // Put the new kernel stack right below the current one in virtual memory
     kernel_page_table.table[new_stack_vpn0] = new_k_stack.table[0];
     kernel_page_table.table[new_stack_vpn1] = new_k_stack.table[1];
 
     // Copy the contents of the old kernel stack to the new one
-    copy_page_contents((u_int8_t *)old_stack_page1_p, (u_int8_t *)new_stack_page1_p);
+    memcpy(new_stack_page1_p, old_stack_page1_p, PAGESIZE);
+    memcpy(new_stack_page0_p, old_stack_page0_p, PAGESIZE);
 
     // Mark the new kernel kernel stack as invalid again
     // Mark the PFNs are available in the bit array

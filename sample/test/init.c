@@ -8,10 +8,9 @@
  * Description: Prints Hello World to the Console.
  */
 
-#include <stdio.h>
-
 int main()
 {
-    printf("\nHello World!!\n");
-    return 0;
+    while (1)
+    {
+    }
 }

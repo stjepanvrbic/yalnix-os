@@ -151,7 +151,6 @@ page_table_t init_region1_page_table()
     // Set up a Region 1 page table.
     for (unsigned int i = VMEM_1_BASE; i < VMEM_1_LIMIT; i += PAGESIZE)
     {
-        TracePrintf(0, "\n-------------------- %x ----------------------\n", i);
         page_id = i / PAGESIZE;
         pte_t page_table_entry;
 
@@ -161,7 +160,6 @@ page_table_t init_region1_page_table()
         page_table_entry.pfn = 0;
         temp_page_table.table[page_id] = page_table_entry;
     }
-    TracePrintf(0, "\n-------------------- Return ----------------------\n");
     return temp_page_table;
 }
 
@@ -209,14 +207,11 @@ void init_process(UserContext *user_context)
 {
     // FREE PAGE TABLE WHEN RETIRING PROCESS
     page_table_t *temp_page_table = malloc(sizeof(page_table_t));
-    TracePrintf(0, "-------------------------- init pt addr %p-----------------", temp_page_table);
     unsigned int page_id = 0;
     // Set up a Region 1 page table.
     for (unsigned int i = VMEM_1_BASE; i < VMEM_1_LIMIT; i += PAGESIZE)
     {
-
-        TracePrintf(0, "\n-------------------- %x ----------------------\n", i);
-        page_id = i / PAGESIZE;
+        page_id = ((i - VMEM_1_BASE) / PAGESIZE);
         pte_t page_table_entry;
 
         // Mark everything as invalid.
@@ -313,9 +308,6 @@ extern void KernelStart(char **cmd_args, unsigned int pmem_size, UserContext *uc
     TracePrintf(0, "\n--------------- In KernelStart ---------------\n");
     int i = 0;
 
-    TracePrintf(0, "\n------------------------ data start: %p----------------------\n", _kernel_data_start);
-    TracePrintf(0, "\n------------------------ data end: %p----------------------\n", _kernel_data_end);
-
     // Initialize up KERNEL_BRK.
     KERNEL_BRK = _kernel_orig_brk;
 
@@ -386,7 +378,7 @@ extern void KernelStart(char **cmd_args, unsigned int pmem_size, UserContext *uc
     // Set up a Region 1 page table.
     for (unsigned int i = VMEM_1_BASE; i < VMEM_1_LIMIT; i += PAGESIZE)
     {
-        page_id = i / PAGESIZE;
+        page_id = ((i - VMEM_1_BASE) / PAGESIZE);
         pte_t page_table_entry;
 
         // Mark everything as invalid.
@@ -443,10 +435,17 @@ extern void KernelStart(char **cmd_args, unsigned int pmem_size, UserContext *uc
     //     TracePrintf(0, "\n--------------- Back from Loading INIT? ---------------\n");
     // }
 
+    TracePrintf(0, "\n--------------- About to Switch into INIT ---------------\n");
+    status = KernelContextSwitch(KCSwitch, (void *)curr_pcb, (void *)&init_pcb);
+    if (status != 0)
+    {
+        TracePrintf(0, "\n--------------- Kernel Context Switch Failed ---------------\n");
+    }
+    TracePrintf(0, "\n--------------- Back from the switch! Am I IDLE or INIT? ---------------\n");
+
     // Load init executable into the region 1 page table of the init process
     TracePrintf(0, "\n--------------- About to Load INIT ---------------\n");
     status = LoadProgram(cmd_args[0], cmd_args, &init_pcb);
-
     if (status != 0)
     {
         TracePrintf(0, "\n--------------- Load Program Failed ---------------\n");
