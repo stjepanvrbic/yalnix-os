@@ -34,27 +34,24 @@ KernelContext *KCSwitch(KernelContext *kc_in,
 
     unsigned int kernel_stack_vpn0 = (unsigned int)kernel_stack_p0 >> PAGESHIFT;
     unsigned int kernel_stack_vpn1 = (unsigned int)kernel_stack_p1 >> PAGESHIFT;
+    // Check if these two are swapped
 
     // Save the current process kernel stack in its PCB
     p_curr_pcb->memory_context.kernel_stack.table[0] = kernel_page_table.table[kernel_stack_vpn0];
     p_curr_pcb->memory_context.kernel_stack.table[1] = kernel_page_table.table[kernel_stack_vpn1];
 
-    TracePrintf(0, "\n-------------------- vpn0: %d, vpn1: %d-----------------------\n", kernel_stack_vpn0, kernel_stack_vpn1);
+    TracePrintf(0, "\n-------------------- vpn0: %d, vpn1: %d -----------------------\n", kernel_stack_vpn0, kernel_stack_vpn1);
+    TracePrintf(0, "\n-------------------- pfn0: %d, pfn1: %d -----------------------\n", p_next_pcb->memory_context.kernel_stack.table[0].pfn, p_next_pcb->memory_context.kernel_stack.table[1].pfn);
 
     // Map the kernel page table to the new process kernel stack
     kernel_page_table.table[kernel_stack_vpn0] = p_next_pcb->memory_context.kernel_stack.table[0];
     kernel_page_table.table[kernel_stack_vpn1] = p_next_pcb->memory_context.kernel_stack.table[1];
 
+    // Flush the TLB
+    WriteRegister(REG_TLB_FLUSH, TLB_FLUSH_0);
+
     // Return the next process kernel context
     return &p_next_pcb->kernel_context;
-}
-
-void copy_page_contents(u_int8_t *dest, u_int8_t *src)
-{
-    for (int i = 0; i < PAGESIZE; i++)
-    {
-        src[i] = dest[i];
-    }
 }
 
 KernelContext *KCCopy(KernelContext *kc_in,
@@ -87,12 +84,18 @@ KernelContext *KCCopy(KernelContext *kc_in,
     kernel_page_table.table[new_stack_vpn0] = new_k_stack.table[0];
     kernel_page_table.table[new_stack_vpn1] = new_k_stack.table[1];
 
+    // Check if 0 and 1 are swapped
+    TracePrintf(0, "\n-------------------- vpn0: %d, vpn1: %d -----------------------\n", new_stack_vpn0, new_stack_vpn1);
+
+    // Flush the TLB
+    WriteRegister(REG_TLB_FLUSH, TLB_FLUSH_0);
+
     // Copy the contents of the old kernel stack to the new one
     memcpy(new_stack_page1_p, old_stack_page1_p, PAGESIZE);
     memcpy(new_stack_page0_p, old_stack_page0_p, PAGESIZE);
 
     // Mark the new kernel kernel stack as invalid again
-    // Mark the PFNs are available in the bit array
+    // Mark the PFNs as available in the bit array
     kernel_page_table.table[new_stack_vpn0].valid = 0;
     mem_frames.bit_arr[kernel_page_table.table[new_stack_vpn0].pfn] = 0;
     kernel_page_table.table[new_stack_vpn0].pfn = 0;
@@ -100,6 +103,9 @@ KernelContext *KCCopy(KernelContext *kc_in,
     kernel_page_table.table[new_stack_vpn1].valid = 0;
     mem_frames.bit_arr[kernel_page_table.table[new_stack_vpn1].pfn] = 0;
     kernel_page_table.table[new_stack_vpn1].pfn = 0;
+
+    // Flush the TLB
+    WriteRegister(REG_TLB_FLUSH, TLB_FLUSH_0);
 
     // Return kc_in
     return kc_in;

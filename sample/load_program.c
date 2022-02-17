@@ -129,11 +129,9 @@ int LoadProgram(char *name, char *args[], pcb_t *proc)
   /* leave at least one page between heap and stack */
   if (stack_npg + data_pg1 + data_npg >= MAX_PT_LEN)
   {
-    TracePrintf(0, "\n------------------------ in if statement ------------------------\n");
     close(fd);
     return ERROR;
   }
-  TracePrintf(0, "\n------------------------ After Red Zone ------------------------\n");
 
   /*
    * This completes all the checks before we proceed to actually load
@@ -150,8 +148,6 @@ int LoadProgram(char *name, char *args[], pcb_t *proc)
    * ==>> proc->uc.sp = cp2;
    DONE
    */
-
-  TracePrintf(0, "\n------------------------ Stack Pointer ------------------------\n");
   proc->user_context.sp = cp2;
 
   /*
@@ -187,15 +183,12 @@ int LoadProgram(char *name, char *args[], pcb_t *proc)
    * ==>> for every valid page, free the pfn and mark the page invalid.
    */
   // Throw away the old Region 1 page table.
-
-  TracePrintf(0, "\n------------------------ Throw away the old Region 1 page table ------------------------\n");
-
   unsigned int page_id;
   for (unsigned int i = VMEM_1_BASE; i < VMEM_1_LIMIT; i += PAGESIZE)
   {
     page_id = (i - VMEM_1_BASE) / PAGESIZE;
     // If current page is valid, free it and mark it as invalid.
-    pte_t *page_table_entry = &proc->memory_context.user_page_table.table[page_id];
+    pte_t *page_table_entry = &proc->memory_context.user_page_table->table[page_id];
     if (page_table_entry->valid == 1)
     {
       page_table_entry->valid = 0;                   // Mark it as invalid.
@@ -208,8 +201,7 @@ int LoadProgram(char *name, char *args[], pcb_t *proc)
    * ==>> (See the LoadProgram diagram in the manual.)
    DONE BELOW
    */
-  TracePrintf(0, "\n------------------------ Build new region 1 page table ------------------------\n");
-  page_table_t *user_page_table = &proc->memory_context.user_page_table;
+  page_table_t *user_page_table = proc->memory_context.user_page_table;
 
   /*
    * ==>> First, text. Allocate "li.t_npg" physical pages and map them starting at
@@ -218,11 +210,9 @@ int LoadProgram(char *name, char *args[], pcb_t *proc)
    * ==>> (PROT_READ | PROT_WRITE).
    DONE
    */
-  TracePrintf(0, "\n------------------------ allocate space for the text ------------------------\n");
   for (page_id = text_pg1; page_id <= (text_pg1 + li.t_npg - 1); page_id++)
   {
     int new_frame_id = first_free_frame_idx();
-    mem_frames.bit_arr[new_frame_id] = 1; // Mark frame as used.
     user_page_table->table[page_id].valid = 1;
     user_page_table->table[page_id].pfn = new_frame_id;
     user_page_table->table[page_id].prot = (PROT_READ | PROT_WRITE);
@@ -235,11 +225,9 @@ int LoadProgram(char *name, char *args[], pcb_t *proc)
    * ==>> (PROT_READ | PROT_WRITE).
    DONE
    */
-  TracePrintf(0, "\n------------------------ allocate space for the data ------------------------\n");
   for (page_id = data_pg1; page_id <= (data_pg1 + data_npg - 1); page_id++)
   {
     int new_frame_id = first_free_frame_idx();
-    mem_frames.bit_arr[new_frame_id] = 1; // Mark frame as used.
     user_page_table->table[page_id].valid = 1;
     user_page_table->table[page_id].pfn = new_frame_id;
     user_page_table->table[page_id].prot = (PROT_READ | PROT_WRITE);
@@ -252,11 +240,9 @@ int LoadProgram(char *name, char *args[], pcb_t *proc)
    * ==>> protection of (PROT_READ | PROT_WRITE).
    DONE
    */
-  TracePrintf(0, "\n------------------------ allocate space for the stack ------------------------\n");
-  for (page_id = MAX_PT_LEN - stack_npg; page_id <= (data_pg1 + data_npg - 1); page_id++)
+  for (page_id = MAX_PT_LEN - stack_npg; page_id <= (MAX_PT_LEN - 1); page_id++)
   {
     int new_frame_id = first_free_frame_idx();
-    mem_frames.bit_arr[new_frame_id] = 1; // Mark frame as used.
     user_page_table->table[page_id].valid = 1;
     user_page_table->table[page_id].pfn = new_frame_id;
     user_page_table->table[page_id].prot = (PROT_READ | PROT_WRITE);
@@ -309,7 +295,6 @@ int LoadProgram(char *name, char *args[], pcb_t *proc)
    * ==>> you will need to flush the old mapping.
    DONE
    */
-
   for (page_id = text_pg1; page_id <= (text_pg1 + li.t_npg - 1); page_id++)
   {
     user_page_table->table[page_id].prot = (PROT_READ | PROT_EXEC);

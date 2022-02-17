@@ -31,11 +31,11 @@ typedef struct kernel_stack
 
 typedef struct memblock
 {
-    void *brk;       // Pointer to the brk in Region 1
-    void *kernel_sp; // Pointer to the top of the kernel stack
+    void *brk;         // Pointer to the brk in Region 1
+    void *region_1_sp; // Pointer to the bottom of the region 1 stack
 
-    page_table_t user_page_table; // Page table for the Region 1 process
-    kernel_stack_t kernel_stack;  // Page table for the kernel stack
+    page_table_t *user_page_table; // Page table for the Region 1 process
+    kernel_stack_t kernel_stack;   // Page table for the kernel stack
 
 } memblock_t;
 
@@ -67,7 +67,7 @@ int first_free_frame_idx();
 kernel_page_table_t kernel_page_table;
 
 // Set up the Region 1 Page Table.
-page_table_t region_1_page_table;
+page_table_t *region_1_page_table;
 
 // Globals to keep track of processes.
 pcb_t *curr_pcb;

@@ -1,6 +1,13 @@
-// KernelLand Process Coordination Syscalls Handlers
-// Selim Hassairi
-// COSC 58 - 22W
+/* process_coord_syscalls.h ---
+ *
+ *
+ * Author:  team yeyeye
+ * Created: Sat Jan 30 10:33:29 2021 (-0400)
+ * Version: 1.0
+ *
+ * Description: Declares the process coordination syscalls handlers.
+ *
+ */
 
 //---------------------------------- KernelFork ----------------------------------
 // Description:
@@ -31,22 +38,25 @@ void KernelExit(int status);
 int KernelWait(int *status_ptr);
 
 //---------------------------------- KernelGetPid --------------------------------
-// Description:
-// Inputs:
-// Outputs:
+// Description: Returns the pid of the calling process
+// Inputs:      nothing
+// Outputs:     return the process pid
 //--------------------------------------------------------------------------------
 int KernelGetPid(void);
 
 //---------------------------------- KernelBrk -----------------------------------
-// Description:
-// Inputs:
-// Outputs:
+// Description: KernelLand handler for the Region 1 Brk syscall. DIFFERENT FROM SetKernelBrk.
+// Inputs:      new address to be set
+// Outputs:     return 0 if successfull
+//              return ERROR if unsuccessfull
 //--------------------------------------------------------------------------------
 int KernelBrk(void *addr);
 
 //---------------------------------- KernelDelay ---------------------------------
-// Description:
-// Inputs:
-// Outputs:
+// Description: Block and wait unitl clock_ticks number of clock interrputs have
+//              occured.
+// Inputs:      number of clock ticks
+// Outputs:     return 0 if successfull
+//              return ERROR if unsuccessfull
 //--------------------------------------------------------------------------------
 int KernelDelay(int clock_ticks);

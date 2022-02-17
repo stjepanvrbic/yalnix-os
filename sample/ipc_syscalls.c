@@ -1,18 +1,18 @@
- /* ipc_syscalls.c --- 
- * 
- * 
- * Author:  team yeyeye 
+/* ipc_syscalls.c ---
+ *
+ *
+ * Author:  team yeyeye
  * Created: Sat Jan 30 10:33:29 2021 (-0400)
  * Version: 1.0
- * 
+ *
  * Description: Implements the IPC syscall handlers.
- * 
+ *
  */
 
-#include "../headers/ipc_syscalls.h"
+#include "../include/ipc_syscalls.h"
 
-
-int pipe_init(int *pipe_idp) {
+int pipe_init(int *pipe_idp)
+{
     // Create pipe
     // If it fails
     //      return ERROR
@@ -29,7 +29,8 @@ int pipe_init(int *pipe_idp) {
     // return 0
 }
 
-int pipe_read(/*to be decided*/) {
+int pipe_read(/*to be decided*/)
+{
     // Check the len received is non-negative
 
     // While the pipe is empty
@@ -50,7 +51,8 @@ int pipe_read(/*to be decided*/) {
     // return len_bytes_read
 }
 
-int pipe_write(/*to be decided*/) {
+int pipe_write(/*to be decided*/)
+{
     // Check the len received is non-negative
 
     // While the pipe new len + pipe_len > plen

@@ -1,6 +1,18 @@
-// KernelLand Process Coordination Syscalls Handlers
-// Selim Hassairi
-// COSC 58 - 22W
+/* process_coord_syscalls.c ---
+ *
+ *
+ * Author:  team yeyeye
+ * Created: Sat Jan 30 10:33:29 2021 (-0400)
+ * Version: 1.0
+ *
+ * Description: Implements the process coordination syscalls handlers.
+ *
+ */
+
+#include <ylib.h>
+#include "../include/pcb.h"
+#include "../include/hardware.h"
+#include "../include/process_coord_syscalls.h"
 
 int KernelFork(void)
 {
@@ -37,7 +49,7 @@ int KernelExec(char filename, char *argvec)
             We then allocate new frames for the text, data, and stack for the initial state of the new program.
             We populate these frames.
             We set up the argv[i] array somewhere in the new address space, and feed main (in the new space) pointers (in the new space) to where we put them.
-     * Start the execution of the program with the given filename while passing it its arguements argvec. 
+     * Start the execution of the program with the given filename while passing it its arguements argvec.
     */
 }
 
@@ -48,7 +60,7 @@ void KernelExit(int status)
      * Free all the resources used by that process
      * When parent exits, their children keep running.
      * When orphans exits, no need to save or report status.
-    */
+     */
 }
 
 int KernelWait(int status_ptr)
@@ -59,14 +71,16 @@ int KernelWait(int status_ptr)
      * If there are no child processes to wait for, return with ERROR.
      * If there are children processes not terminated, block and wait for exit info to return.
      * On success, the pid of the child is returned and status ptr is written to.
-    */
+     */
 }
 
 int KernelGetPid(void)
 {
     // Returns the pid of the calling process
+    return curr_pcb->pid;
 }
 
+// KernelLand handler for the Region 1 Brk syscall. DIFFERENT FROM SetKernelBrk.
 int KernelBrk(void *addr)
 {
     /**
@@ -74,13 +88,34 @@ int KernelBrk(void *addr)
      * Return 0 if succes.
      * If the addr is invalid or if not enough memory is available, the value ERROR is returned.
      */
+    void *new_brk = (void *)UP_TO_PAGE(addr);
+
+    void *lower_bound = VMEM_1_BASE; // QUESTION: NOT SURE WHAT TO PUT AS THE LOWER BOUND, PUTTING VMEM_1_BASE FOR NOW.
+    void *upper_bound = (void *)DOWN_TO_PAGE(curr_pcb->memory_context.region_1_sp);
+    int8_t isWithinBound = (lower_bound <= new_brk && new_brk <= upper_bound);
+    if (!(isWithinBound))
+    {
+        return ERROR;
+    }
+
+    curr_pcb->memory_context.brk = new_brk;
+    return 0;
 }
 
 int KernelDelay(int clock_ticks)
 {
-    /**
-     * Block and wait unitl clock_ticks number of clock interrputs have occurec.
-     * Upon completion return 0
-     * If clock_ticks < 0 return ERROR.
-     */
+    // Check argumets
+    if (clock_ticks < 0)
+    {
+        return ERROR;
+    }
+
+    // Block until number of click ticks have passed
+    while (clock_ticks > 0)
+    {
+        Pause();
+        clock_ticks--;
+    }
+
+    return 0;
 }

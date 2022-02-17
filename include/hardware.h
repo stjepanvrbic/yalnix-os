@@ -59,6 +59,7 @@
 #define SP_ADD_OFFSET(addr) ((long)(addr)-SP_OFFSET)
 
 #define N_R1_PTE_ENTRIES (VMEM_1_SIZE / PAGESIZE)
+#define N_R0_PTE_ENTRIES (VMEM_0_SIZE / PAGESIZE)
 
 #if (PAGESIZE != 0x2000)
 #warning "pagesize has changed: change alignment in kernel.x, user.x"

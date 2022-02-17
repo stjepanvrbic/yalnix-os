@@ -1,19 +1,19 @@
- /* sync_syscalls.c --- 
- * 
- * 
- * Author:  team yeyeye 
+/* sync_syscalls.c ---
+ *
+ *
+ * Author:  team yeyeye
  * Created: Sat Jan 30 10:33:29 2021 (-0400)
  * Version: 1.0
- * 
+ *
  * Description: Implements the synchronization syscalls handlers.
- * 
+ *
  */
 
-#include "../headers/sync_syscalls.h"
-
+#include "../include/sync_syscalls.h"
 
 /******************************************* LOCKS *******************************************/
-int lock_init(int *lock_idp) {
+int lock_init(int *lock_idp)
+{
     // Create the lock
     // If it fails
     //      return ERROR
@@ -32,8 +32,9 @@ int lock_init(int *lock_idp) {
     // return 0
 }
 
-int lock_acquire(/*to be decided*/) {
-    // Find lock 
+int lock_acquire(/*to be decided*/)
+{
+    // Find lock
     // If can't find lock
     //      return ERROR
 
@@ -49,8 +50,9 @@ int lock_acquire(/*to be decided*/) {
     // return 0
 }
 
-int lock_release(/*to be decided*/) {
-    // Find lock 
+int lock_release(/*to be decided*/)
+{
+    // Find lock
     // If can't find lock
     //      return ERROR
 
@@ -59,13 +61,13 @@ int lock_release(/*to be decided*/) {
     //      process gets lock
     // Else
     //      set lock free
-    
+
     // return 0
 }
 
-
 /******************************************* Cvar *******************************************/
-int cvar_init(int *cvar_idp) {
+int cvar_init(int *cvar_idp)
+{
     // Create the cvar
     // If it fails
     //      return ERROR
@@ -84,8 +86,9 @@ int cvar_init(int *cvar_idp) {
     // return 0
 }
 
-int cvar_signal(/*to be decided*/) {
-    // Find cvar 
+int cvar_signal(/*to be decided*/)
+{
+    // Find cvar
     // If can't find cvar
     //      return ERROR
 
@@ -94,24 +97,26 @@ int cvar_signal(/*to be decided*/) {
     //      set process to ready queue
     // Else
     //      set cvar free
-    
+
     // return 0
 }
 
-int cvar_broadcast(/*to be decided*/) {
-    // Find cvar 
+int cvar_broadcast(/*to be decided*/)
+{
+    // Find cvar
     // If can't find cvar
     //      return ERROR
 
     // While the wait queue has processes waiting
     //      get first process from wait queue
     //      set process to ready queue
-    
+
     // return 0
 }
 
-int cvar_wait(/*to be decided*/) {
-    // Find cvar 
+int cvar_wait(/*to be decided*/)
+{
+    // Find cvar
     // If can't find cvar
     //      return ERROR
 
@@ -127,7 +132,8 @@ int cvar_wait(/*to be decided*/) {
     //      reacquire lock
 }
 
-int reclaim(/*to be decided*/){
+int reclaim(/*to be decided*/)
+{
     // Find lock, cvar, or pipe
     // If it fails
     //      return ERROR
