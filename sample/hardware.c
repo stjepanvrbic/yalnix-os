@@ -8,31 +8,19 @@
  * Description: Implements the kernel start and set kernel brk functions.
  */
 
-
+#include "../include/utils.h"
 #include "../include/pcb.h"
 #include "../include/traps.h"
-
-#include <yalnix.h>
+#include "../include/hardware.h"
+#include "../include/kernel_context.h"
+#include "../include/load_program.h"
 #include <ykernel.h>
+#include <yalnix.h>
 
-// Global Variables.
-void *KERNEL_BRK;
-
-// Set up a way to track free frames (use a bit vector to track this)
-bit_vector_t mem_frames; // 0 for free, 1 for used.
 unsigned int n_frames;
 
 // Keep track of allocated stuff.
 unsigned int brk_offset = 0;
-
-// Set up the Kernel Page Table.
-kernel_page_table_t kernel_page_table;
-
-// Set up the Region 1 Page Table.
-page_table_t region_1_page_table;
-
-// Globals to store the idle process
-pcb_t idle_proc;
 
 // Flag to check whether vitual memory is enabled.
 unsigned char is_virtual_memory_enabled = 0;
@@ -63,11 +51,11 @@ void *interrupt_vector[TRAP_VECTOR_SIZE] = {
 // Inputs:      The kernel page table to be printed.
 // Outputs:     The kernel page table is printed to the console
 //--------------------------------------------------------------------------------
-void PrintKernelPageTable(kernel_page_table_t page_table)
+void PrintKernelPageTable(page_table_t *page_table)
 {
     for (int page_id = 0; page_id < MAX_PT_LEN; page_id++)
     {
-        TracePrintf(0, "\n page id : %d \t| valid: %d \t | prot: %d \t| pfn: %d\n", page_id, page_table.table[page_id].valid, page_table.table[page_id].prot, page_table.table[page_id].pfn);
+        TracePrintf(0, "\n page id : %d \t| valid: %d \t | prot: %d \t| pfn: %d\n", page_id, page_table->table[page_id].valid, page_table->table[page_id].prot, page_table->table[page_id].pfn);
     }
 }
 
@@ -76,16 +64,16 @@ void PrintKernelPageTable(kernel_page_table_t page_table)
 // Inputs:      The user page table to be printed.
 // Outputs:     The user page table is printed to the console
 //--------------------------------------------------------------------------------
-void PrintUserPageTable(page_table_t page_table)
+void PrintUserPageTable(page_table_t *page_table)
 {
     for (int page_id = 0; page_id < MAX_PT_LEN; page_id++)
     {
-        TracePrintf(0, "\n page id : %d \t| valid: %d \t | prot: %d \t| pfn: %d\n", page_id, page_table.table[page_id].valid, page_table.table[page_id].prot, page_table.table[page_id].pfn);
+        TracePrintf(0, "\n page id : %d \t| valid: %d \t | prot: %d \t| pfn: %d\n", page_id, page_table->table[page_id].valid, page_table->table[page_id].prot, page_table->table[page_id].pfn);
     }
 }
 
 //---------------------------- first_free_frame_idx ------------------------------
-// Description: Finds the first free frame in physical memory.
+// Description: Finds the first free frame in physical memory and marks it as used.
 // Inputs:      None.
 // Outputs:     Returns the index of the first free frame in the bit array.
 //--------------------------------------------------------------------------------
@@ -96,11 +84,17 @@ int first_free_frame_idx()
     {
         i++;
     }
+    mem_frames.bit_arr[i] = 1; // Mark is at used.
     return i;
 }
 
 /*************************************************** PROCESSES ****************************************************/
 
+//------------------------------------ DoIdle ------------------------------------
+// Description: Function that makes a process go idle.
+// Inputs:      None.
+// Outputs:     Outputs DoIdle to the console on every clock tick.
+//--------------------------------------------------------------------------------
 void DoIdle()
 {
     while (1)
@@ -110,35 +104,140 @@ void DoIdle()
     }
 }
 
-void create_process(UserContext *user_context, void (*func)())
+//------------------------------- create_idle_process ---------------------------------
+// Description:
+// Inputs:
+// Outputs:
+//--------------------------------------------------------------------------------
+void create_idle_process(UserContext *user_context, void (*func)())
 {
-
-    TracePrintf(0, "\n --------------- IN CREATE IDLE PROC ---------------\n");
-    idle_proc.user_context = user_context;
-    idle_proc.pid = helper_new_pid(region_1_page_table.table);
+    idle_pcb.pid = helper_new_pid(region_1_page_table->table);
 
     // Allocate a frame for a process stack.
     int free_frame = first_free_frame_idx();
 
     // Set the last page to valid.
     unsigned int stack_vpn = ((VMEM_1_LIMIT - VMEM_0_LIMIT) >> PAGESHIFT) - 1;
-    region_1_page_table.table[stack_vpn].valid = 1;
-    region_1_page_table.table[stack_vpn].prot = PROT_READ | PROT_WRITE;
-    region_1_page_table.table[stack_vpn].pfn = free_frame;
-    mem_frames.bit_arr[free_frame] = 1; // set that frame to used
+    region_1_page_table->table[stack_vpn].valid = 1;
+    region_1_page_table->table[stack_vpn].prot = PROT_READ | PROT_WRITE;
+    region_1_page_table->table[stack_vpn].pfn = free_frame;
 
     // Flush the TLB
     WriteRegister(REG_TLB_FLUSH, TLB_FLUSH_1);
 
     // Set current instruction to DoIdle.
-    idle_proc.user_context->pc = func;
+    user_context->pc = func;
 
     // Set the stack pointer to the top of the stack.
-    idle_proc.user_context->sp = (void *)SP_ADD_OFFSET(VMEM_1_LIMIT); // The stack pointer points 0x20 bytes below the high address of the last page in the stack.
+    user_context->sp = (void *)SP_ADD_OFFSET(VMEM_1_LIMIT); // The stack pointer points 0x20 bytes below the high address of the last page in the stack.
 
     // Set the page tables of the idle pcb
-    idle_proc.memory_context.user_page_table = region_1_page_table;
-    idle_proc.memory_context.kernel_spage_table = kernel_page_table;
+    idle_pcb.memory_context.user_page_table = region_1_page_table;
+
+    // Copy a copy of the user context into the pcb for idle_pcb
+    idle_pcb.user_context = *user_context;
+
+    curr_uctxt = user_context;
+}
+
+//-------------------------- * -----------------------------
+// Description: Initializes a Region 1 Page Table and marks everything as invalid.
+// Inputs:      None.
+// Outputs:     An user page table is initilaized and marked as invalid.
+//              That user page table is returned.
+//--------------------------------------------------------------------------------
+page_table_t *init_region1_page_table()
+{
+    page_table_t *temp_page_table = malloc(sizeof(page_table_t));
+    unsigned int page_id = 0;
+    // Set up a Region 1 page table.
+    for (unsigned int i = VMEM_1_BASE; i < VMEM_1_LIMIT; i += PAGESIZE)
+    {
+        page_id = i / PAGESIZE;
+        pte_t page_table_entry;
+
+        // Mark everything as invalid.
+        page_table_entry.valid = 0;
+        page_table_entry.prot = 0;
+        page_table_entry.pfn = 0;
+        temp_page_table->table[page_id] = page_table_entry;
+    }
+    return temp_page_table;
+}
+
+//------------------------------ new_kernel_stack --------------------------------
+// Description: Initialize two new frames for a kernel stack and mark them as valid.
+// Inputs:      None.
+// Outputs:     A kernel stack table is initilaized and marked as valid.
+//              That kernel stack table is returned.
+//--------------------------------------------------------------------------------
+kernel_stack_t new_kernel_stack()
+{
+    kernel_stack_t temp_stack;
+    pte_t page0;
+    pte_t page1;
+
+    // Find free frames in physical memory
+    u_long pfn0 = first_free_frame_idx();
+    u_long pfn1 = first_free_frame_idx();
+
+    // Initialize the page table entries as valid
+    page0.pfn = pfn0;
+    page0.valid = 1;
+    page0.prot = PROT_READ | PROT_WRITE;
+    page1.pfn = pfn1;
+    page1.valid = 1;
+    page1.prot = PROT_READ | PROT_WRITE;
+
+    // Copy the page table entries into the kernel stack
+    temp_stack.table[0] = page0;
+    temp_stack.table[1] = page1;
+
+    return temp_stack;
+}
+
+//-------------------------------- init_process ----------------------------------
+// Description:
+// Inputs:
+// Outputs:
+//--------------------------------------------------------------------------------
+void init_process(UserContext *user_context)
+{
+    // FREE PAGE TABLE WHEN RETIRING PROCESS
+    page_table_t *temp_page_table = malloc(sizeof(page_table_t));
+    unsigned int page_id = 0;
+    // Set up a Region 1 page table.
+    for (unsigned int i = VMEM_1_BASE; i < VMEM_1_LIMIT; i += PAGESIZE)
+    {
+        page_id = ((i - VMEM_1_BASE) / PAGESIZE);
+        pte_t page_table_entry;
+
+        // Mark everything as invalid.
+        page_table_entry.valid = 0;
+        page_table_entry.prot = 0;
+        page_table_entry.pfn = 0;
+        temp_page_table->table[page_id] = page_table_entry;
+    }
+
+    init_pcb.memory_context.user_page_table = temp_page_table;
+
+    // Get a PID for the process
+    init_pcb.pid = helper_new_pid(init_pcb.memory_context.user_page_table->table);
+
+    // Set up a Kernel stack table.
+    init_pcb.memory_context.kernel_stack = new_kernel_stack();
+
+    // Indicate the virtual memory base address of the region 1 page table.
+    WriteRegister(REG_PTBR1, (unsigned int)init_pcb.memory_context.user_page_table->table);
+
+    // Indicate the number of page table entries in the region 1 page table.
+    WriteRegister(REG_PTLR1, N_R1_PTE_ENTRIES);
+
+    // Flush the TLB
+    WriteRegister(REG_TLB_FLUSH, TLB_FLUSH_1);
+
+    // Make a copy of the user context in the init PCB
+    init_pcb.user_context = *user_context;
 }
 
 /*************************************************** START KERNEL ****************************************************/
@@ -174,7 +273,6 @@ extern int SetKernelBrk(void *addr)
             kernel_page_table.table[page_id].valid = 1;
             kernel_page_table.table[page_id].prot = PROT_READ | PROT_WRITE;
             kernel_page_table.table[page_id].pfn = next_free_frame_id;
-            mem_frames.bit_arr[next_free_frame_id] = 1; // Mark as used.
         }
     }
     // free() scenario:
@@ -277,33 +375,25 @@ extern void KernelStart(char **cmd_args, unsigned int pmem_size, UserContext *uc
     WriteRegister(REG_PTLR0, n_kernel_page_table_entries);
 
     page_id = 0;
-    unsigned int n_region_1_page_table_entries = VMEM_1_SIZE / PAGESIZE;
+    region_1_page_table = malloc(sizeof(page_table_t));
     // Set up a Region 1 page table.
     for (unsigned int i = VMEM_1_BASE; i < VMEM_1_LIMIT; i += PAGESIZE)
     {
-        page_id = i / PAGESIZE;
+        page_id = ((i - VMEM_1_BASE) / PAGESIZE);
         pte_t page_table_entry;
 
         // Mark everything as invalid.
         page_table_entry.valid = 0;
         page_table_entry.prot = 0;
         page_table_entry.pfn = 0;
-        region_1_page_table.table[page_id] = page_table_entry;
-
-        if (i == VMEM_1_LIMIT >> PAGESHIFT)
-        {
-            page_table_entry.valid = 1;
-            page_table_entry.prot = PROT_READ | PROT_WRITE;
-            page_table_entry.pfn = 0;
-            region_1_page_table.table[page_id] = page_table_entry;
-        }
+        region_1_page_table->table[page_id] = page_table_entry;
     }
 
     // Indicate the virtual memory base address of the region 1 page table.
-    WriteRegister(REG_PTBR1, (unsigned int)region_1_page_table.table);
+    WriteRegister(REG_PTBR1, (unsigned int)region_1_page_table->table);
 
     // Indicate the number of page table entries in the region 1 page table.
-    WriteRegister(REG_PTLR1, n_region_1_page_table_entries);
+    WriteRegister(REG_PTLR1, N_R1_PTE_ENTRIES);
 
     // Enable Virtual Memory.
     WriteRegister(REG_VM_ENABLE, 1);
@@ -312,7 +402,61 @@ extern void KernelStart(char **cmd_args, unsigned int pmem_size, UserContext *uc
     // Set up the interrupt register
     WriteRegister(REG_VECTOR_BASE, (unsigned int)interrupt_vector);
 
-    create_process(uctxt, &DoIdle);
+    // Create idle process pcb and run the idle function
+    TracePrintf(0, "\n --------------- IN CREATE IDLE PROC ---------------\n");
+    create_idle_process(uctxt, &DoIdle);
+    TracePrintf(0, "\n--------------- LEFT CREATE IDLE PROC ---------------\n");
 
-    TracePrintf(0, "\n--------------- Leaving KernelStart ---------------\n");
+    // Bookkeping to keep track of the currently running process
+    curr_pcb = &idle_pcb;
+
+    // Create init process pcb and map the region 1 page table to it
+    TracePrintf(0, "\n--------------- IN CREATE INIT PROC ---------------\n");
+    init_process(uctxt);
+    TracePrintf(0, "\n--------------- LEFT CREATE INIT PROC ---------------\n");
+
+    // Clone idle into init
+    TracePrintf(0, "\n--------------- About to Clone IDLE into INIT ---------------\n");
+    int status = KernelContextSwitch(KCCopy, (void *)&init_pcb, NULL);
+    if (status != 0)
+    {
+        TracePrintf(0, "\n--------------- Kernel Context Switch Failed ---------------\n");
+    }
+    TracePrintf(0, "\n--------------- Back from the clone! Am I IDLE or INIT? ---------------\n");
+
+    // if (cmd_args[0] == NULL)
+    // {
+    //     // Load init executable into the region 1 page table of the init process
+    //     TracePrintf(0, "\n--------------- About to Load INIT ---------------\n");
+    //     status = LoadProgram("init", NULL, &init_pcb);
+    //     if (status != 0)
+    //     {
+    //         TracePrintf(0, "\n--------------- Load Program Failed ---------------\n");
+    //     }
+    //     TracePrintf(0, "\n--------------- Back from Loading INIT? ---------------\n");
+    // }
+
+    // Load init executable into the region 1 page table of the init process
+    TracePrintf(0, "\n--------------- About to Load INIT ---------------\n");
+    status = LoadProgram(cmd_args[0], cmd_args, &init_pcb);
+    if (status != 0)
+    {
+        TracePrintf(0, "\n--------------- Load Program Failed ---------------\n");
+    }
+    TracePrintf(0, "\n--------------- Back from Loading INIT? ---------------\n");
+
+    // TracePrintf(0, "\n--------------- idle PTBR1 Addredd: %p ---------------\n", idle_pcb.memory_context.user_page_table->table);
+    // TracePrintf(0, "\n--------------- init PTBR1 Addredd: %p ---------------\n", init_pcb.memory_context.user_page_table->table);
+    // TracePrintf(0, "\n--------------- curr PTBR1 Addredd: %p ---------------\n", curr_pcb->memory_context.user_page_table->table);
+
+    // Indicate the virtual memory base address of the region 1 page table.
+    WriteRegister(REG_PTBR1, (unsigned int)idle_pcb.memory_context.user_page_table->table);
+
+    // Indicate the number of page table entries in the region 1 page table.
+    WriteRegister(REG_PTLR1, N_R1_PTE_ENTRIES);
+
+    // Flush TLB
+    WriteRegister(REG_TLB_FLUSH, TLB_FLUSH_1);
+
+    TracePrintf(0, "\n ==================== Leaving KernelStart ===========================================================\n");
 }

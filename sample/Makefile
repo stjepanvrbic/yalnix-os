@@ -10,14 +10,14 @@
 K_SRC_DIR = .
 
 # What are the kernel c and include files?
-K_SRCS = hardware.c traps.c # ipc_syscalls.c process_coord_syscalls.c template.c io_syscalls.c kernel_context.c sync_syscalls.c
-K_INCS = ../include/hardware.h ../include/ctype.h ../include/load_info.h ../include/yalnix.h ../include/ykernel.h ../include/ylib.h ../include/yuser.h ../include/traps.h
+K_SRCS = hardware.c traps.c kernel_context.c load_program.c # ipc_syscalls.c process_coord_syscalls.c template.c io_syscalls.c sync_syscalls.c
+K_INCS = ../include/hardware.h ../include/ctype.h ../include/load_info.h ../include/yalnix.h ../include/ykernel.h ../include/ylib.h ../include/yuser.h ../include/traps.h ../include/load_program.h ../include/kernel_context.h ../include/pcb.h ../include/utils.h
 
 # Where's your user source?
 U_SRC_DIR = ./test
 
 # What are the user c and include files?
-U_SRCS = 
+U_SRCS = init.c
 U_INCS = 
 
 
@@ -73,8 +73,7 @@ LINK_KERNEL = $(LINK.c)
 
 USER_LIBS = $(LIBDIR)/libuser.a
 ASFLAGS = -D__ASM__
-CPPFLAGS= -m32 -fno-builtin -I. -I$(INCDIR) -g -DLINUX 
-
+CPPFLAGS= -D_FILE_OFFSET_BITS=64 -m32 -fno-builtin -I. -I$(INCDIR) -g -DLINUX
 
 ##########################
 #Targets for different makes
