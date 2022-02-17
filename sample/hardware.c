@@ -435,13 +435,13 @@ extern void KernelStart(char **cmd_args, unsigned int pmem_size, UserContext *uc
     //     TracePrintf(0, "\n--------------- Back from Loading INIT? ---------------\n");
     // }
 
-    TracePrintf(0, "\n--------------- About to Switch into INIT ---------------\n");
-    status = KernelContextSwitch(KCSwitch, (void *)curr_pcb, (void *)&init_pcb);
-    if (status != 0)
-    {
-        TracePrintf(0, "\n--------------- Kernel Context Switch Failed ---------------\n");
-    }
-    TracePrintf(0, "\n--------------- Back from the switch! Am I IDLE or INIT? ---------------\n");
+    // TracePrintf(0, "\n--------------- About to Switch into INIT ---------------\n");
+    // status = KernelContextSwitch(KCSwitch, (void *)curr_pcb, (void *)&init_pcb);
+    // if (status != 0)
+    // {
+    //     TracePrintf(0, "\n--------------- Kernel Context Switch Failed ---------------\n");
+    // }
+    // TracePrintf(0, "\n--------------- Back from the switch! Am I IDLE or INIT? ---------------\n");
 
     // Load init executable into the region 1 page table of the init process
     TracePrintf(0, "\n--------------- About to Load INIT ---------------\n");

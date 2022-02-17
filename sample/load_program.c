@@ -193,7 +193,7 @@ int LoadProgram(char *name, char *args[], pcb_t *proc)
   unsigned int page_id;
   for (unsigned int i = VMEM_1_BASE; i < VMEM_1_LIMIT; i += PAGESIZE)
   {
-    page_id = i / PAGESIZE;
+    page_id = (i - VMEM_1_BASE) / PAGESIZE;
     // If current page is valid, free it and mark it as invalid.
     pte_t *page_table_entry = &proc->memory_context.user_page_table.table[page_id];
     if (page_table_entry->valid == 1)
@@ -328,14 +328,13 @@ int LoadProgram(char *name, char *args[], pcb_t *proc)
   /*
    * ==>> (rewrite the line below to match your actual data structure)
    * ==>> proc->uc.pc = (caddr_t) li.entry;
-   HAD TO CAST TO void *
    */
+
   proc->user_context.pc = (caddr_t)li.entry;
 
   /*
    * Now, finally, build the argument list on the new stack.
    */
-
   memset(cpp, 0x00, VMEM_1_LIMIT - ((int)cpp));
 
   *cpp++ = (char *)argcount; /* the first value at cpp is argc */

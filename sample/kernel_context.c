@@ -11,6 +11,7 @@
 #include "../include/kernel_context.h"
 #include "../include/pcb.h"
 #include "../include/utils.h"
+#include <ylib.h>
 
 /* The kernel stack initially maps 1 to 1 to phtsical addresses
 In the region 0 page table, the vpn correspond 1 to 1 to the psiginfo
