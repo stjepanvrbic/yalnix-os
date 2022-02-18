@@ -17,6 +17,22 @@
 #include <ykernel.h>
 #include <yalnix.h>
 
+// Global Variables.
+void *KERNEL_BRK;
+UserContext *curr_uctxt;
+
+bit_vector_t mem_frames; // 0 for free, 1 for used.
+
+kernel_page_table_t kernel_page_table;
+
+// Set up the Region 1 Page Table.
+page_table_t *region_1_page_table;
+
+// Globals to keep track of processes.
+pcb_t *curr_pcb;
+pcb_t idle_pcb;
+pcb_t init_pcb;
+
 unsigned int n_frames;
 
 // Keep track of allocated stuff.

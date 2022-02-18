@@ -64,13 +64,13 @@ kernel_stack_t new_kernel_stack();
 int first_free_frame_idx();
 
 // Set up the Kernel Page Table.
-kernel_page_table_t kernel_page_table;
+extern kernel_page_table_t kernel_page_table;
 
 // Set up the Region 1 Page Table.
-page_table_t *region_1_page_table;
+extern page_table_t *region_1_page_table;
 
 // Globals to keep track of processes.
-pcb_t *curr_pcb;
-pcb_t idle_pcb;
-pcb_t init_pcb;
+extern pcb_t *curr_pcb;
+extern pcb_t idle_pcb;
+extern pcb_t init_pcb;
 #endif

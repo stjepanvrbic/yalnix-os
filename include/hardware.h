@@ -202,8 +202,8 @@ struct kernel_context
 typedef struct kernel_context KernelContext;
 
 // Global Variables.
-void *KERNEL_BRK;
-UserContext *curr_uctxt;
+extern void *KERNEL_BRK;
+extern UserContext *curr_uctxt;
 
 /*
  *  Define the interrupt and exception vector numbers.  These numbers
