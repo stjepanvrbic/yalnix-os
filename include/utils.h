@@ -26,6 +26,6 @@ typedef struct bit_vector
 } bit_vector_t;
 
 // Set up a way to track free frames (use a bit vector to track this)
-bit_vector_t mem_frames; // 0 for free, 1 for used.
+extern bit_vector_t mem_frames; // 0 for free, 1 for used.
 
 #endif
