@@ -21,7 +21,8 @@
 void *KERNEL_BRK;
 UserContext *curr_uctxt;
 
-// Set up the Kernel Page Table.
+bit_vector_t mem_frames; // 0 for free, 1 for used.
+
 kernel_page_table_t kernel_page_table;
 
 // Set up the Region 1 Page Table.
@@ -31,8 +32,6 @@ page_table_t *region_1_page_table;
 pcb_t *curr_pcb;
 pcb_t idle_pcb;
 pcb_t init_pcb;
-
-bit_vector_t mem_frames; // 0 for free, 1 for used.
 
 unsigned int n_frames;
 
