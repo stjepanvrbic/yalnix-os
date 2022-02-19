@@ -63,7 +63,7 @@ void KernelExit(int status)
      */
 }
 
-int KernelWait(int status_ptr)
+int KernelWait(int *status_ptr)
 {
     /**
      * Collects process ID and exit status returned by a child of the program calling.
@@ -88,6 +88,8 @@ int KernelBrk(void *addr)
      * Return 0 if succes.
      * If the addr is invalid or if not enough memory is available, the value ERROR is returned.
      */
+    TracePrintf(0, "--------------Calling KernelBrk with addr: %p----------------", addr);
+    TracePrintf(0, "\n---------- Current kernel brk %p-----------\n", curr_pcb->memory_context.brk);
     void *new_brk = (void *)UP_TO_PAGE(addr);
 
     void *lower_bound = VMEM_1_BASE; // QUESTION: NOT SURE WHAT TO PUT AS THE LOWER BOUND, PUTTING VMEM_1_BASE FOR NOW.
@@ -95,10 +97,12 @@ int KernelBrk(void *addr)
     int8_t isWithinBound = (lower_bound <= new_brk && new_brk <= upper_bound);
     if (!(isWithinBound))
     {
+        TracePrintf(0, "\n---------- BRK ERRROR -----------\n");
         return ERROR;
     }
 
     curr_pcb->memory_context.brk = new_brk;
+    TracePrintf(0, "\n---------- New kernel brk %p-----------\n", curr_pcb->memory_context.brk);
     return 0;
 }
 
@@ -107,13 +111,13 @@ int KernelDelay(int clock_ticks)
     // Check argumets
     if (clock_ticks < 0)
     {
+        TracePrintf(0, "\n---------- ERROR KernelDelay: clock tick is negative: %d -----------\n", clock_ticks);
         return ERROR;
     }
 
     // Block until number of click ticks have passed
     while (clock_ticks > 0)
     {
-        Pause();
         clock_ticks--;
     }
 

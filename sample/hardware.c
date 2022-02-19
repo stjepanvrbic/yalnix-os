@@ -17,6 +17,23 @@
 #include <ykernel.h>
 #include <yalnix.h>
 
+// Global Variables.
+void *KERNEL_BRK;
+UserContext *curr_uctxt;
+
+// Set up the Kernel Page Table.
+kernel_page_table_t kernel_page_table;
+
+// Set up the Region 1 Page Table.
+page_table_t *region_1_page_table;
+
+// Globals to keep track of processes.
+pcb_t *curr_pcb;
+pcb_t idle_pcb;
+pcb_t init_pcb;
+
+bit_vector_t mem_frames; // 0 for free, 1 for used.
+
 unsigned int n_frames;
 
 // Keep track of allocated stuff.
@@ -227,6 +244,8 @@ void init_process(UserContext *user_context)
     // Set up a Kernel stack table.
     init_pcb.memory_context.kernel_stack = new_kernel_stack();
 
+    init_pcb.memory_context.brk = VMEM_1_BASE;
+
     // Indicate the virtual memory base address of the region 1 page table.
     WriteRegister(REG_PTBR1, (unsigned int)init_pcb.memory_context.user_page_table->table);
 
@@ -416,13 +435,12 @@ extern void KernelStart(char **cmd_args, unsigned int pmem_size, UserContext *uc
     TracePrintf(0, "\n--------------- LEFT CREATE INIT PROC ---------------\n");
 
     // Clone idle into init
-    TracePrintf(0, "\n--------------- About to Clone IDLE into INIT ---------------\n");
+    TracePrintf(0, "\n--------------- in kernel start | About to Clone IDLE into INIT ---------------\n");
     int status = KernelContextSwitch(KCCopy, (void *)&init_pcb, NULL);
     if (status != 0)
     {
         TracePrintf(0, "\n--------------- Kernel Context Switch Failed ---------------\n");
     }
-    TracePrintf(0, "\n--------------- Back from the clone! Am I IDLE or INIT? ---------------\n");
 
     // if (cmd_args[0] == NULL)
     // {
@@ -436,27 +454,35 @@ extern void KernelStart(char **cmd_args, unsigned int pmem_size, UserContext *uc
     //     TracePrintf(0, "\n--------------- Back from Loading INIT? ---------------\n");
     // }
 
-    // Load init executable into the region 1 page table of the init process
-    TracePrintf(0, "\n--------------- About to Load INIT ---------------\n");
-    status = LoadProgram(cmd_args[0], cmd_args, &init_pcb);
-    if (status != 0)
+    if (curr_pcb->pid == init_pcb.pid)
     {
-        TracePrintf(0, "\n--------------- Load Program Failed ---------------\n");
+        // Load init executable into the region 1 page table of the init process
+        TracePrintf(0, "\n--------------- in kernel start | I'M INIT---------------\n");
+        TracePrintf(0, "\n--------------- in kernel start | About to Load INIT ---------------\n");
+        status = LoadProgram(cmd_args[0], cmd_args, &init_pcb);
+        *uctxt = init_pcb.user_context;
+        if (status != 0)
+        {
+            TracePrintf(0, "\n--------------- Load Program Failed ---------------\n");
+        }
+        TracePrintf(0, "\n--------------- in kernel start | Back from Loading INIT? ---------------\n");
     }
-    TracePrintf(0, "\n--------------- Back from Loading INIT? ---------------\n");
+    else
+    {
+        TracePrintf(0, "\n--------------- in kernel start | I'M IDLE ---------------\n");
+        // Indicate the virtual memory base address of the region 1 page table.
+        WriteRegister(REG_PTBR1, (unsigned int)idle_pcb.memory_context.user_page_table->table);
+
+        // Indicate the number of page table entries in the region 1 page table.
+        WriteRegister(REG_PTLR1, N_R1_PTE_ENTRIES);
+    }
 
     // TracePrintf(0, "\n--------------- idle PTBR1 Addredd: %p ---------------\n", idle_pcb.memory_context.user_page_table->table);
     // TracePrintf(0, "\n--------------- init PTBR1 Addredd: %p ---------------\n", init_pcb.memory_context.user_page_table->table);
     // TracePrintf(0, "\n--------------- curr PTBR1 Addredd: %p ---------------\n", curr_pcb->memory_context.user_page_table->table);
 
-    // Indicate the virtual memory base address of the region 1 page table.
-    WriteRegister(REG_PTBR1, (unsigned int)idle_pcb.memory_context.user_page_table->table);
-
-    // Indicate the number of page table entries in the region 1 page table.
-    WriteRegister(REG_PTLR1, N_R1_PTE_ENTRIES);
-
     // Flush TLB
     WriteRegister(REG_TLB_FLUSH, TLB_FLUSH_1);
 
-    TracePrintf(0, "\n ==================== Leaving KernelStart ===========================================================\n");
+    TracePrintf(0, "\n ==================== Leaving KernelStart =====================\n");
 }

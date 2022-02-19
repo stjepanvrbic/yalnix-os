@@ -1,4 +1,4 @@
-/* init.c ---
+/* test_get_pid_syscall.c ---
  *
  *
  * Author:  team yeyeye
@@ -9,15 +9,16 @@
  */
 
 #include <ylib.h>
+#include <yuser.h>
 
 int main()
 {
     while (1)
     {
         TracePrintf(1, "\n-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-\n");
-        TracePrintf(1, "\n     Wassup team yeeyeyyeyeyey     \n");
-        TracePrintf(1, "\n            DONSOS CHICOS          \n");
+        TracePrintf(1, "\n            DELAYOS CHICOS          \n");
         TracePrintf(1, "\n-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-\n");
-        Pause();
+        Delay(200000);
     }
+    return 0;
 }

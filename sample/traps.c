@@ -11,16 +11,58 @@
 
 #include "../include/traps.h"
 #include "../include/kernel_context.h"
+#include "../include/process_coord_syscalls.h"
 #include "../include/pcb.h"
+#include <unistd.h>
+#include <yalnix.h>
 
 void trap_kernel_handler(UserContext *user_context)
 {
+    TracePrintf(0, "\n------------ kernel trap triggered ----------------\n");
+
     // Get the trap code from the user_context
+    int code = user_context->code;
+    int addr, clock_ticks;
+
     // Switch statement to invoke the correct syscall wrapper
+    switch (code)
+    {
+    case YALNIX_FORK:
+        // KernelFork();
+        break;
+
+    case YALNIX_EXEC:
+        // user_context->code;
+        // KernelExec();
+        break;
+
+    case YALNIX_EXIT:
+        // KernelFork();
+        break;
+
+    case YALNIX_WAIT:
+        // KernelWait();
+        break;
+
+    case YALNIX_GETPID:
+        KernelGetPid();
+        break;
+
+    case YALNIX_BRK:
+        addr = user_context->regs[0];
+        KernelBrk((void *)addr);
+        break;
+
+    case YALNIX_DELAY:
+        clock_ticks = user_context->regs[0];
+        KernelDelay(clock_ticks);
+        break;
+
+    default:
+        break;
+    }
 
     // return
-    TracePrintf(0, "\n------------ kernel trap triggered ----------------\n");
-    TracePrintf(0, "\nSyscall code : %x\n", user_context->code);
 }
 
 void trap_clock_handler(UserContext *user_context)
@@ -31,10 +73,6 @@ void trap_clock_handler(UserContext *user_context)
     // Else
     //      dispatch idle
 
-    // Print who we are
-
-    TracePrintf(0, "\n------------ clock trap triggered ----------------\n");
-
     // Check which process is running
     // If idle currently running
     if (curr_pcb->pid == idle_pcb.pid)
@@ -43,10 +81,6 @@ void trap_clock_handler(UserContext *user_context)
         // Save user context
         idle_pcb.user_context = *user_context;
 
-        // Set user context to new pcb context
-        *curr_uctxt = init_pcb.user_context;
-
-        TracePrintf(0, "\n------------ writing to registers ----------------\n");
         // Indicate the virtual memory base address of the region 1 page table.
         WriteRegister(REG_PTBR1, (unsigned int)init_pcb.memory_context.user_page_table->table);
     }
@@ -57,10 +91,6 @@ void trap_clock_handler(UserContext *user_context)
         // Save user context
         init_pcb.user_context = *user_context;
 
-        // Set user context to new pcb context
-        *curr_uctxt = idle_pcb.user_context;
-
-        TracePrintf(0, "\n------------ writing to registers ----------------\n");
         // Indicate the virtual memory base address of the region 1 page table.
         WriteRegister(REG_PTBR1, (unsigned int)idle_pcb.memory_context.user_page_table->table);
     }
@@ -68,35 +98,41 @@ void trap_clock_handler(UserContext *user_context)
     // Indicate the number of page table entries in the region 1 page table.
     WriteRegister(REG_PTLR1, N_R1_PTE_ENTRIES);
 
+    // Flush the TLB
+    WriteRegister(REG_TLB_FLUSH, TLB_FLUSH_1);
+
     // Check which process is running
     // If idle currently running
     if (curr_pcb->pid == idle_pcb.pid)
     {
+        // Set the new current pcb
+        curr_pcb = &init_pcb;
         // Switch from idle to init
         TracePrintf(0, "\n------------ I AM IDLE about to switch to INIT ----------------\n");
-        int status = KernelContextSwitch(KCSwitch, (void *)curr_pcb, (void *)&init_pcb);
-
+        int status = KernelContextSwitch(KCSwitch, (void *)&idle_pcb, (void *)&init_pcb);
         if (status != 0)
         {
             TracePrintf(0, "\n--------------- Kernel Context Switch Failed ---------------\n");
         }
-        // Set the new current pcb
-        curr_pcb = &init_pcb;
-        TracePrintf(0, "\n--------------- Back from the switch! Am I IDLE or INIT? ---------------\n");
+        TracePrintf(0, "\n--------------- Back from the switch! I AM IDLE ---------------\n");
+        // Set user context to new pcb context
+        *user_context = idle_pcb.user_context;
     }
     // If init currently running
     else
     {
+        // Set the new current pcb
+        curr_pcb = &idle_pcb;
         // Switch from init to idel
-        TracePrintf(0, "\n--------------- About to Switch Process ---------------\n");
-        int status = KernelContextSwitch(KCSwitch, (void *)curr_pcb, (void *)&idle_pcb);
+        TracePrintf(0, "\n--------------- I AM INIT about to switch to IDLE ---------------\n");
+        int status = KernelContextSwitch(KCSwitch, (void *)&init_pcb, (void *)&idle_pcb);
         if (status != 0)
         {
             TracePrintf(0, "\n--------------- Kernel Context Switch Failed ---------------\n");
         }
-        // Set the new current pcb
-        curr_pcb = &idle_pcb;
-        TracePrintf(0, "\n--------------- Back from the switch! Am I IDLE or INIT? ---------------\n");
+        TracePrintf(0, "\n--------------- Back from the switch! I AM INIT ---------------\n");
+        // Set user context to new pcb context
+        *user_context = init_pcb.user_context;
     }
 
     TracePrintf(0, "\n------------ leaving clock trap handler ----------------\n");
