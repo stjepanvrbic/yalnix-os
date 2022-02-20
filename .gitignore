@@ -3,3 +3,6 @@ sample/*.o
 sample/TRACE
 sample/TTYLOG*
 sample/yalnix
+
+test/*.o
+test/init
