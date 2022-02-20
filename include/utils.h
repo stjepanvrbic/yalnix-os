@@ -13,12 +13,12 @@
 #ifndef _utils_h
 #define _utils_h
 
-typedef struct queue
+typedef int bool;
+enum
 {
-    // Queue structure
-    // Reusing queue from ENGS 50
-    // The queue only uses malloc and free
-} queue_t;
+    false,
+    true
+};
 
 typedef struct bit_vector
 {

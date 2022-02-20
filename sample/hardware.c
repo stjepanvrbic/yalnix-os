@@ -458,6 +458,7 @@ extern void KernelStart(char **cmd_args, unsigned int pmem_size, UserContext *uc
         // Load init executable into the region 1 page table of the init process
         TracePrintf(0, "\n--------------- in kernel start | I'M INIT---------------\n");
         TracePrintf(0, "\n--------------- in kernel start | About to Load INIT ---------------\n");
+        curr_pcb->p_parent_proc = &idle_pcb;
         status = LoadProgram(cmd_args[0], cmd_args, &init_pcb);
         *uctxt = init_pcb.user_context;
         if (status != 0)
