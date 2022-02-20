@@ -13,6 +13,7 @@
 #ifndef _pcb_h
 #define _pcb_h
 #include "hardware.h"
+#include "queue.h"
 
 typedef struct page_table
 {
@@ -47,8 +48,8 @@ typedef struct pcb
     UserContext user_context;     // UserContext information
     KernelContext kernel_context; // KernelContext information
 
-    // queue_t children;          // Keeping track of the child processes
-    // queue_t deceased_children; // Keeping track of the dead children
+    queue_t *children;          // Keeping track of the child processes
+    queue_t *deceased_children; // Keeping track of the dead children
 
     int exit_code;   // Exit code of the process
     int exit_signal; // The signal that ended the process
@@ -62,6 +63,7 @@ typedef struct pcb
 
 kernel_stack_t new_kernel_stack();
 int first_free_frame_idx();
+void create_process(UserContext *user_context, pcb_t *new_pcb);
 
 // Set up the Kernel Page Table.
 extern kernel_page_table_t kernel_page_table;
@@ -72,5 +74,4 @@ extern page_table_t *region_1_page_table;
 // Globals to keep track of processes.
 extern pcb_t *curr_pcb;
 extern pcb_t idle_pcb;
-extern pcb_t init_pcb;
 #endif

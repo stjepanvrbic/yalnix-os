@@ -13,44 +13,58 @@
 #include "../include/pcb.h"
 #include "../include/hardware.h"
 #include "../include/process_coord_syscalls.h"
+#include "../include/utils.h"
+#include "../include/load_program.h"
+#include "../include/kernel_context.h"
 
 int KernelFork(void)
 {
-    /**
-     * Create a new process with its new virtual memory space.
-     *     KernelStart needs to create an initPCB with:
-     *         region 1 page table, all invalid
-     *         new frames from its kernel and stack frames.
-     *         a UserContext, which is obtained from the uctxt arg to KernelStart
-     *         a new pid, obtainable through helper_new_pid()
-     * Copy the content of the parent process to the forked child.
-     *     KCCopy() to copy kernelcontext into initPCB
-     *     copy the contents of the current kernel stack into the new kernel stack frames in initPCB
-     * For each page in the old page table:
-            We need to reproduce its permissions and stuff in the new table.
-            If the page is valid, then:
-            we need to find a free frame (which means we need to figure out how to track which are free!)
-            we need to allocate it to this page in the new space;
-            we need to copy the contents of the frame for this page in the old table into this new frame.
-     * How do we deal with returning two different things in two different processes?
-     *     Maybe change somehow change something in the process of the child that will make it return 0 and push that process to the queue of processes?
-     *     The parent can just easily return the pid of the child process.
-     * If copying or creating the new process fails, return value ERROR.
+    // Create New Process PCB.
+    pcb_t *new_pcb = malloc(sizeof(pcb_t));
+    create_process(curr_uctxt, new_pcb);
 
-    */
+    // Add new PCB to the ready queue.
+    int status = (int)qput(ready_queue, (void *)new_pcb);
+    if (status != 0)
+    {
+        TracePrintf(0, "\n--------------- ERROR : Adding pcb to queue FAILED ---------------\n");
+        return ERROR;
+    }
+
+    // Copy current context to new PCB.
+    status = KernelContextSwitch(KCCopy, (void *)new_pcb, NULL); // NOTE: both current and next processes will read the rest of the function.
+    if (status != 0)
+    {
+        TracePrintf(0, "\n--------------- Kernel Context Switch Failed ---------------\n");
+        return ERROR;
+    }
+
+    // If we are the Parent.
+    if (curr_pcb->pid != new_pcb->pid)
+    {
+        // Add the child process to the queue of ready processes.
+        int status = (int)qput(curr_pcb->children, (void *)new_pcb);
+        if (status != 0)
+        {
+            TracePrintf(0, "\n--------------- ERROR : Adding new pcb to queue FAILED ---------------\n");
+            return ERROR;
+        }
+        // If we are the parent return the PID of the newborn child. (congrats)
+        return new_pcb->pid;
+    }
+
+    // If we are the Child, return 0.
+    return SUCCESS;
 }
 
-int KernelExec(char filename, char *argvec)
+int KernelExec(char *filename, char **argvec)
 {
-    /**
-     * Wipe out the current process' Region 1
-     * We go through the page table:
-            We deallocate the old frames.
-            We then allocate new frames for the text, data, and stack for the initial state of the new program.
-            We populate these frames.
-            We set up the argv[i] array somewhere in the new address space, and feed main (in the new space) pointers (in the new space) to where we put them.
-     * Start the execution of the program with the given filename while passing it its arguements argvec.
-    */
+    int status = LoadProgram(filename, argvec, curr_pcb);
+    if (status != 0)
+    {
+        TracePrintf(0, "\n--------------- Load Program Failed ---------------\n");
+        return ERROR;
+    }
 }
 
 void KernelExit(int status)
@@ -92,7 +106,7 @@ int KernelBrk(void *addr)
     TracePrintf(0, "\n---------- Current kernel brk %p-----------\n", curr_pcb->memory_context.brk);
     void *new_brk = (void *)UP_TO_PAGE(addr);
 
-    void *lower_bound = VMEM_1_BASE; // QUESTION: NOT SURE WHAT TO PUT AS THE LOWER BOUND, PUTTING VMEM_1_BASE FOR NOW.
+    void *lower_bound = (void *)VMEM_1_BASE; // QUESTION: NOT SURE WHAT TO PUT AS THE LOWER BOUND, PUTTING VMEM_1_BASE FOR NOW.
     void *upper_bound = (void *)DOWN_TO_PAGE(curr_pcb->memory_context.region_1_sp);
     int8_t isWithinBound = (lower_bound <= new_brk && new_brk <= upper_bound);
     if (!(isWithinBound))
@@ -121,5 +135,5 @@ int KernelDelay(int clock_ticks)
         clock_ticks--;
     }
 
-    return 0;
+    return SUCCESS;
 }
