@@ -14,6 +14,7 @@
 #include "../include/hardware.h"
 #include "../include/kernel_context.h"
 #include "../include/load_program.h"
+#include "../include/queue.h"
 
 #include <ykernel.h>
 #include <yalnix.h>
@@ -212,19 +213,30 @@ void create_process(UserContext *user_context, pcb_t *new_pcb)
         page_table_entry.pfn = 0;
         temp_page_table->table[page_id] = page_table_entry;
     }
+    // Set up the brk
+    new_pcb->memory_context.brk = (void *)VMEM_1_BASE;
 
+    // Set the pointer of the user stack
+    new_pcb->memory_context.region_1_sp = NULL;
+
+    // Set the user page table
     new_pcb->memory_context.user_page_table = temp_page_table;
-
-    // Get a PID for the process
-    new_pcb->pid = helper_new_pid((struct pte *)&new_pcb->memory_context.user_page_table->table);
 
     // Set up a Kernel stack table.
     new_pcb->memory_context.kernel_stack = new_kernel_stack();
 
-    new_pcb->memory_context.brk = (void *)VMEM_1_BASE;
+    // Get a PID for the process
+    new_pcb->pid = helper_new_pid((struct pte *)&new_pcb->memory_context.user_page_table->table);
+
+    // Set the parent pcb to null
+    new_pcb->parent_pcb_p = NULL;
 
     // Make a copy of the user context in the init PCB
     new_pcb->user_context = *user_context;
+
+    // Initiliaze the queues
+    new_pcb->children = qopen();
+    new_pcb->deceased_children = qopen();
 }
 
 /*************************************************** START KERNEL ****************************************************/
@@ -436,7 +448,7 @@ extern void KernelStart(char **cmd_args, unsigned int pmem_size, UserContext *uc
         // Indicate the number of page table entries in the region 1 page table.
         WriteRegister(REG_PTLR1, N_R1_PTE_ENTRIES);
 
-        curr_pcb->p_parent_proc = &idle_pcb;
+        curr_pcb->parent_pcb_p = &idle_pcb;
 
         // If no init program is provided, run the base init program.
         if (cmd_args[0] == NULL)

@@ -42,14 +42,17 @@ int KernelFork(void)
     // If we are the Parent.
     if (curr_pcb->pid != new_pcb->pid)
     {
-        // Add the child process to the queue of ready processes.
+        // Add the child process to the queue of children processes.
         int status = (int)qput(curr_pcb->children, (void *)new_pcb);
         if (status != 0)
         {
             TracePrintf(0, "\n--------------- ERROR : Adding new pcb to queue FAILED ---------------\n");
             return ERROR;
         }
-        // If we are the parent return the PID of the newborn child. (congrats)
+        // If we are the parent make the parent pcb of the child process point to me
+        new_pcb->parent_pcb_p = curr_pcb;
+
+        // If we are the parent return the PID of the newborn child.
         return new_pcb->pid;
     }
 
@@ -75,6 +78,48 @@ void KernelExit(int status)
      * When parent exits, their children keep running.
      * When orphans exits, no need to save or report status.
      */
+
+    // int status;
+    // pcb_t *parent;
+
+    // // // If the initial process exists, halt the system
+    // if (curr_pcb->pid == idle_pcb.pid)
+    // {
+    //     Halt();
+    // }
+
+    // // If the parent is alive
+    // if (curr_pcb->parent_pcb_p != NULL)
+    // {
+    //     parent = (pcb_t *)curr_pcb->parent_pcb_p;
+
+    //     // Save the exit code
+    //     curr_pcb->exit_code = status;
+
+    //     // Free the resources used by the process
+    //     qclose(curr_pcb->children);
+    //     qclose(curr_pcb->deceased_children);
+
+    //     // Pop pcb from queue of children
+    //     pcb_t *next_pcb = (pcb_t *)qremove(parent->children, );
+    //     // If queue is empty, error
+    //     if (next_pcb == NULL)
+    //     {
+    //         return ERROR;
+    //     }
+
+    //     // Add pcb to deceased children queue
+    //     status = (int)qput(parent->deceased_children, (void *)curr_pcb);
+    //     if (status != 0)
+    //     {
+    //         TracePrintf(0, "\n--------------- ERROR : Adding pcb to queue FAILED ---------------\n");
+    //         return ERROR;
+    //     }
+    // }
+
+    // // If the process has childs
+
+    // exit(SUCCESS);
 }
 
 int KernelWait(int *status_ptr)
