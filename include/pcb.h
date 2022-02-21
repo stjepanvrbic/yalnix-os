@@ -42,8 +42,8 @@ typedef struct memblock
 
 typedef struct pcb
 {
-    int pid;             // The process id
-    void *p_parent_proc; // Pointer to the parent process PCB
+    int pid;            // The process id
+    void *parent_pcb_p; // Pointer to the parent process PCB
 
     UserContext user_context;     // UserContext information
     KernelContext kernel_context; // KernelContext information

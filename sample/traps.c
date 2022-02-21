@@ -43,7 +43,7 @@ void trap_kernel_handler(UserContext *user_context)
         break;
 
     case YALNIX_EXIT:
-        // KernelFork();
+        // KernelExit();
         break;
 
     case YALNIX_WAIT:
@@ -124,9 +124,13 @@ void trap_clock_handler(UserContext *user_context)
 
 void trap_illegal_handler(UserContext *user_context)
 {
-    // Invoke Exit() syscall to abort current process
     TracePrintf(0, "\n------------ illegal trap triggered ----------------\n");
-    TracePrintf(0, "\nTHIS TRAP IS NOT YET HANDLED\n");
+    TracePrintf(0, "\n------------ Process calling Illegal Trap Handler pid: %d ----------------\n", curr_pcb->pid);
+
+    int status = user_context->code;
+    TracePrintf(0, "\n------------ Status Code when Exiting: %d ----------------\n", status);
+
+    KernelExit(status);
 }
 
 void trap_memory_handler(UserContext *user_context)
@@ -153,9 +157,13 @@ void trap_memory_handler(UserContext *user_context)
 
 void trap_math_handler(UserContext *user_context)
 {
-    // Invoke Exit() syscall to abort current process
     TracePrintf(0, "\n------------ math trap triggered ----------------\n");
-    TracePrintf(0, "\nTHIS TRAP IS NOT YET HANDLED\n");
+    TracePrintf(0, "\n------------ Process calling Math Trap Handler pid: %d ----------------\n", curr_pcb->pid);
+
+    int status = user_context->code;
+    TracePrintf(0, "\n------------ Status Code when Exiting: %d ----------------\n", status);
+
+    KernelExit(status);
 }
 
 void trap_tty_receive_handler(UserContext *user_context)
@@ -186,7 +194,8 @@ void trap_tty_transmit_handler(UserContext *user_context)
 
 void trap_disk_handler(UserContext *user_context)
 {
-    // return
     TracePrintf(0, "\n------------ disk trap triggered ----------------\n");
     TracePrintf(0, "\nTHIS TRAP IS NOT YET HANDLED\n");
+
+    return;
 }
