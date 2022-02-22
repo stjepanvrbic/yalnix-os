@@ -17,7 +17,7 @@ K_INCS = ../include/hardware.h ../include/ctype.h ../include/load_info.h ../incl
 U_SRC_DIR = ./test
 
 # What are the user c and include files?
-U_SRCS = init.c test_get_pid_syscall.c test_delay_syscall.c test_brk_syscall.c
+U_SRCS = init.c test_get_pid_syscall.c test_delay_syscall.c test_brk_syscall.c test_fork_syscall.c
 U_INCS = 
 
 
