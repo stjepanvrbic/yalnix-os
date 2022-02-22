@@ -29,6 +29,7 @@ kernel_page_table_t kernel_page_table;
 
 queue_t *ready_queue;
 queue_t *blocked_queue;
+queue_t *defunct_queue;
 
 // Set up the Region 1 Page Table.
 page_table_t *region_1_page_table;
@@ -310,6 +311,7 @@ extern void KernelStart(char **cmd_args, unsigned int pmem_size, UserContext *uc
     // Initialize queues
     ready_queue = qopen();
     blocked_queue = qopen();
+    defunct_queue = qopen();
 
     // Initialize up KERNEL_BRK.
     KERNEL_BRK = _kernel_orig_brk;

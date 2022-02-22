@@ -61,6 +61,11 @@ void *qremove(queue_t *qp,
  */
 void qconcat(queue_t *q1p, queue_t *q2p);
 
+/* Returns 0 if empty, 1 if not.
+ */
+bool qisempty(queue_t *qp);
+
 // Queue data structures
 extern queue_t *ready_queue;
 extern queue_t *blocked_queue;
+extern queue_t *defunct_queue;

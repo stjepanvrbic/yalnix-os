@@ -50,7 +50,7 @@ int KernelFork(void)
             return ERROR;
         }
         // If we are the parent make the parent pcb of the child process point to me
-        new_pcb->parent_pcb_p = curr_pcb;
+        new_pcb->parent_pcb_p = (void *)curr_pcb;
 
         // If we are the parent return the PID of the newborn child.
         return new_pcb->pid;
@@ -79,47 +79,73 @@ void KernelExit(int status)
      * When orphans exits, no need to save or report status.
      */
 
-    // int status;
-    // pcb_t *parent;
+    int func_status;
+    pcb_t *parent = (pcb_t *)curr_pcb->parent_pcb_p;
 
-    // // // If the initial process exists, halt the system
-    // if (curr_pcb->pid == idle_pcb.pid)
-    // {
-    //     Halt();
-    // }
+    // If the initial process exists, halt the system
+    if (curr_pcb->pid == idle_pcb.pid)
+    {
+        Halt();
+    }
 
-    // // If the parent is alive
-    // if (curr_pcb->parent_pcb_p != NULL)
-    // {
-    //     parent = (pcb_t *)curr_pcb->parent_pcb_p;
+    // Set the current process childs parent to Null
+    qapply(curr_pcb->children, &remove_parent);
 
-    //     // Save the exit code
-    //     curr_pcb->exit_code = status;
+    // Check if the parent exists
+    pcb_t *in_defunct_queue = NULL;
+    if (parent != NULL)
+    {
+        // Check if the parent is in the defunct queue
+        pcb_t *in_defunct_queue = (pcb_t *)qsearch(defunct_queue, (void *)&search_pcb, (void *)&parent->pid);
+    }
 
-    //     // Free the resources used by the process
-    //     qclose(curr_pcb->children);
-    //     qclose(curr_pcb->deceased_children);
+    // If the parent is alive
+    if (in_defunct_queue != NULL) // Check if the parent is in the defunct queue
+    {
+        // Save the exit code
+        curr_pcb->exit_code = status;
 
-    //     // Pop pcb from queue of children
-    //     pcb_t *next_pcb = (pcb_t *)qremove(parent->children, );
-    //     // If queue is empty, error
-    //     if (next_pcb == NULL)
-    //     {
-    //         return ERROR;
-    //     }
+        // Free the resources used by the process
+        qclose(curr_pcb->children);
+        qclose(curr_pcb->deceased_children);
+        free(curr_pcb->memory_context.user_page_table);
 
-    //     // Add pcb to deceased children queue
-    //     status = (int)qput(parent->deceased_children, (void *)curr_pcb);
-    //     if (status != 0)
-    //     {
-    //         TracePrintf(0, "\n--------------- ERROR : Adding pcb to queue FAILED ---------------\n");
-    //         return ERROR;
-    //     }
-    // }
+        // Pop pcb from queue of children
+        pcb_t *next_pcb = (pcb_t *)qremove(parent->children, (void *)&search_pcb, (void *)curr_pcb->pid);
+        // If queue is empty, error
+        if (next_pcb == NULL)
+        {
+            TracePrintf(0, "\n--------------- ERROR : Removing PCB from the parent's children FAILED ---------------\n");
+        }
 
-    // // If the process has childs
+        // Add pcb to deceased children queue
+        func_status = (int)qput(parent->deceased_children, (void *)curr_pcb);
+        if (func_status != 0)
+        {
+            TracePrintf(0, "\n--------------- ERROR : Adding pcb to deceased children queue FAILED ---------------\n");
+        }
 
-    // exit(SUCCESS);
+        // Check if parent is in blocked queue
+        // If so remove it from blocked queue and add it to the ready queue
+        pcb_t *in_blocked_queue = (pcb_t *)qremove(blocked_queue, (void *)search_pcb, (void *)parent->pid);
+        if (in_blocked_queue != NULL)
+        {
+            func_status = (int)qput(ready_queue, (void *)in_blocked_queue);
+            if (func_status != 0)
+            {
+                TracePrintf(0, "\n--------------- ERROR : Adding pcb to ready queue FAILED ---------------\n");
+            }
+        }
+    }
+
+    // Add dead process to defunct queue
+    func_status = (int)qput(defunct_queue, (void *)curr_pcb);
+    if (func_status != 0)
+    {
+        TracePrintf(0, "\n--------------- ERROR : Adding pcb to ready queue FAILED ---------------\n");
+    }
+
+    return;
 }
 
 int KernelWait(int *status_ptr)
@@ -131,6 +157,49 @@ int KernelWait(int *status_ptr)
      * If there are children processes not terminated, block and wait for exit info to return.
      * On success, the pid of the child is returned and status ptr is written to.
      */
+
+    int func_status;
+
+    // If the process has no children, or defunct children, return error
+    if (qisempty(curr_pcb->children) && qisempty(curr_pcb->deceased_children))
+    {
+        return ERROR;
+    }
+    // If the process has defunct children, we can just return the pid of the first one
+    else if (!qisempty(curr_pcb->deceased_children))
+    {
+        pcb_t *first_child = (pcb_t *)qget(curr_pcb->deceased_children);
+        if (first_child == NULL)
+        {
+            TracePrintf(0, "\n--------------- ERROR : Deceased Children queue is  EMPTY ---------------\n");
+            return ERROR;
+        }
+        *status_ptr = first_child->exit_code;
+        return first_child->pid;
+    }
+    // If the process has no defunct children, but has active children, put the process
+    // In the blocked queue, and switch to the next ready process
+    else if (!qisempty(curr_pcb->children))
+    {
+        func_status = (int)qput(blocked_queue, curr_pcb); // Add dead process to defunct queue
+        if (func_status != 0)
+        {
+            TracePrintf(0, "\n--------------- ERROR : Adding pcb to blocked queue FAILED ---------------\n");
+            return ERROR;
+        }
+        // Switch to the next process in the ready queue
+        switch_to_next_ready_process();
+
+        // Set the status pointer and return the pid of the child
+        pcb_t *first_child = (pcb_t *)qget(curr_pcb->deceased_children);
+        if (first_child == NULL)
+        {
+            TracePrintf(0, "\n--------------- ERROR : Deceased Children queue is  EMPTY ---------------\n");
+            return ERROR;
+        }
+        *status_ptr = first_child->exit_code;
+        return first_child->pid;
+    }
 }
 
 int KernelGetPid(void)

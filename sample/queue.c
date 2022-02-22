@@ -1,8 +1,8 @@
 /* queue.c ---
  *
  *
- * Author: Sergio E. Bobadilla Javier Esteban Garth Verdeflor
- * Created: Sat Oct 02 11:33:29 2021 (-0400)
+ * Author: team yeyeye
+ * Created: Tue Feb 22
  * Version: 1.0
  *
  * Description: Implements a queue.
@@ -268,4 +268,22 @@ void qconcat(queue_t *q1p, queue_t *q2p)
         qput(q1p, (void *)cnode->data);
     }
     qclose(q2p);
+}
+
+//---------------------------- qisempty -------------------------------
+// Description:   Checks if a queue is empty or not.
+// Inputs:        pointers to on queue
+// Outputs:       Returns TRUE if empty, FALSE if not.
+//--------------------------------------------------------------------
+bool qisempty(queue_t *qp)
+{
+    if (qp->front != NULL)
+    {
+        return false;
+    }
+    else
+    {
+
+        return true;
+    }
 }
