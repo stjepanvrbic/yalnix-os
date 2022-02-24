@@ -155,10 +155,14 @@ void create_idle_process(UserContext *user_context, void (*func)())
     // Set the page tables of the idle pcb
     idle_pcb.memory_context.user_page_table = region_1_page_table;
 
+    curr_uctxt = user_context;
+
     // Copy a copy of the user context into the pcb for idle_pcb
     idle_pcb.user_context = *user_context;
 
-    curr_uctxt = user_context;
+    // Initiliaze the queues
+    idle_pcb.children = qopen();
+    idle_pcb.deceased_children = qopen();
 }
 
 //------------------------------ new_kernel_stack --------------------------------
@@ -192,6 +196,31 @@ kernel_stack_t new_kernel_stack()
     return temp_stack;
 }
 
+//-------------------------- * -----------------------------
+// Description: Initializes a Region 1 Page Table and marks everything as invalid.
+// Inputs:      None.
+// Outputs:     An user page table is initilaized and marked as invalid.
+//              That user page table is returned.
+//--------------------------------------------------------------------------------
+page_table_t *init_region1_page_table()
+{
+    page_table_t *temp_page_table = malloc(sizeof(page_table_t));
+    unsigned int page_id = 0;
+    // Set up a Region 1 page table.
+    for (unsigned int i = VMEM_1_BASE; i < VMEM_1_LIMIT; i += PAGESIZE)
+    {
+        page_id = i / PAGESIZE;
+        pte_t page_table_entry;
+
+        // Mark everything as invalid.
+        page_table_entry.valid = 0;
+        page_table_entry.prot = 0;
+        page_table_entry.pfn = 0;
+        temp_page_table->table[page_id] = page_table_entry;
+    }
+    return temp_page_table;
+}
+
 //-------------------------------- create_process ----------------------------------
 // Description:
 // Inputs:
@@ -218,7 +247,8 @@ void create_process(UserContext *user_context, pcb_t *new_pcb)
     new_pcb->memory_context.brk = (void *)VMEM_1_BASE;
 
     // Set the pointer of the user stack
-    new_pcb->memory_context.region_1_sp = NULL;
+    new_pcb->memory_context.region_1_sp = (void *)VMEM_1_LIMIT;
+    TracePrintf(0, "\n------------ CREATE PROCESS region_1_sp = %p ----------------\n", new_pcb->memory_context.region_1_sp);
 
     // Set the user page table
     new_pcb->memory_context.user_page_table = temp_page_table;
@@ -258,7 +288,7 @@ extern int SetKernelBrk(void *addr)
     }
     // malloc() scenario:
     // After VM is enabled, if brk is raised.
-    else if (is_virtual_memory_enabled == 1 && addr > KERNEL_BRK)
+    else if (is_virtual_memory_enabled == 1 && addr > KERNEL_BRK && addr < (void *)(VMEM_0_LIMIT - 3 * PAGESIZE))
     {
         void *KERNEL_BRK_old = KERNEL_BRK;
         KERNEL_BRK = (void *)UP_TO_PAGE(addr);

@@ -64,6 +64,7 @@ typedef struct pcb
 kernel_stack_t new_kernel_stack();
 int first_free_frame_idx();
 void create_process(UserContext *user_context, pcb_t *new_pcb);
+page_table_t *init_region1_page_table();
 
 // Set up the Kernel Page Table.
 extern kernel_page_table_t kernel_page_table;

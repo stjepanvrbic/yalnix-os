@@ -232,6 +232,7 @@ int LoadProgram(char *name, char *args[], pcb_t *proc)
     user_page_table->table[page_id].pfn = new_frame_id;
     user_page_table->table[page_id].prot = (PROT_READ | PROT_WRITE);
   }
+  proc->memory_context.brk = (void *)(((data_pg1 + data_npg - 1 + MAX_PT_LEN)) << PAGESHIFT);
 
   /*
    * ==>> Then, stack. Allocate "stack_npg" physical pages and map them to the top
@@ -247,6 +248,7 @@ int LoadProgram(char *name, char *args[], pcb_t *proc)
     user_page_table->table[page_id].pfn = new_frame_id;
     user_page_table->table[page_id].prot = (PROT_READ | PROT_WRITE);
   }
+  proc->memory_context.region_1_sp = (void *)((MAX_VPN - stack_npg) << PAGESHIFT);
 
   /*
    * ==>> (Finally, make sure that there are no stale region1 mappings left in the TLB!)

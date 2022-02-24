@@ -25,41 +25,54 @@ void trap_kernel_handler(UserContext *user_context)
 
     // Get the trap code from the user_context
     int code = user_context->code;
-    int addr, clock_ticks;
+    int addr, clock_ticks, status;
     char *filename;
     char **argvec;
+    u_long response;
 
     // Switch statement to invoke the correct syscall wrapper.
     switch (code)
     {
     case YALNIX_FORK:
-        KernelFork();
+        TracePrintf(0, "\n------------ TRAP IN FORK CASE ----------------\n");
+        response = KernelFork();
+        user_context->regs[0] = response;
         break;
 
     case YALNIX_EXEC:
+        TracePrintf(0, "\n------------ TRAP IN EXEC CASE ----------------\n");
         filename = (char *)user_context->regs[0];
         argvec = (char **)user_context->regs;
-        KernelExec(filename, argvec);
+        response = KernelExec(filename, argvec);
+        user_context->regs[0] = response;
         break;
 
     case YALNIX_EXIT:
-        // KernelExit();
+        TracePrintf(0, "\n------------ TRAP IN EXIT CASE ----------------\n");
+        status = (int)user_context->regs[0];
+        TracePrintf(0, "\n------------ Exit Status: %d ----------------\n", status);
+        KernelExit(status);
+        TracePrintf(0, "\n------------ Done exiting ----------------\n", status);
         break;
 
     case YALNIX_WAIT:
+        TracePrintf(0, "\n------------ TRAP IN WAIT CASE ----------------\n");
         // KernelWait();
         break;
 
     case YALNIX_GETPID:
+        TracePrintf(0, "\n------------ TRAP IN GETPID CASE ----------------\n");
         KernelGetPid();
         break;
 
     case YALNIX_BRK:
+        TracePrintf(0, "\n------------ TRAP IN BRK CASE ----------------\n");
         addr = user_context->regs[0];
         KernelBrk((void *)addr);
         break;
 
     case YALNIX_DELAY:
+        TracePrintf(0, "\n------------ TRAP IN DELAY CASE ----------------\n");
         clock_ticks = user_context->regs[0];
         KernelDelay(clock_ticks);
         break;
@@ -68,7 +81,7 @@ void trap_kernel_handler(UserContext *user_context)
         break;
     }
 
-    // return
+    return;
 }
 
 void trap_clock_handler(UserContext *user_context)
@@ -90,24 +103,44 @@ void trap_illegal_handler(UserContext *user_context)
 
 void trap_memory_handler(UserContext *user_context)
 {
-
+    // Extract the type of trigger that triggered the trap.
+    int mem_code = user_context->code;
+    void *offending_address = user_context->addr;
     TracePrintf(0, "\n------------ memory trap triggered ----------------\n");
-    TracePrintf(0, "\nOffending address: %p\n", user_context->addr);
+    TracePrintf(0, "\nOffending address: %p\n", offending_address);
 
-    // Get the trap code from the user_context
-    // Switch statement to invoke the correct syscall wrapper
-    //      If trap is an exception to enlarge the current process's stack
-    //          try to enlarge stack
-    //          If successful
-    //              return allowing the process to keep running
-    //          Else
-    //              invoke Exit() syscall to abort current process
-    //      Else
-    //          invoke Exit() syscall to abort current process
+    // If it is a permission error trigger: return ERROR.
+    if (mem_code == YALNIX_ACCERR)
+    {
+        TracePrintf(0, "\n---------------- CAN'T TOUCH THIS Invalid Permissions ----------------\n");
+        KernelExit(mem_code);
+    }
+    // If it is an address not yet mapped trigger:
+    else if (mem_code == YALNIX_MAPERR)
+    {
+        // If more than two frames below the current pointer, return ERROR.
+        if (offending_address < (curr_pcb->memory_context.region_1_sp - 2 * PAGESIZE))
+        {
+            TracePrintf(0, "\n---------------- CAN'T TOUCH THIS Stack growing more than 2 pages ----------------\n");
+            KernelExit(mem_code);
+        }
 
-    // return
-    TracePrintf(0, "\n------------ memory trap triggered ----------------\n");
-    TracePrintf(0, "\nTHIS TRAP IS NOT YET HANDLED\n");
+        // Allocate memory for the stack until this new address.
+        int high_vpn = (int)curr_pcb->memory_context.region_1_sp >> PAGESHIFT;
+        int low_vpn = (int)offending_address >> PAGESHIFT;
+        for (int page_id = low_vpn; page_id < high_vpn; page_id++)
+        {
+            int free_frame = first_free_frame_idx();
+            curr_pcb->memory_context.user_page_table->table[page_id].valid = 1;
+            curr_pcb->memory_context.user_page_table->table[page_id].prot = PROT_READ | PROT_WRITE;
+            curr_pcb->memory_context.user_page_table->table[page_id].pfn = free_frame;
+        }
+    }
+    else
+    {
+        TracePrintf(0, "\n---------------- CAN'T TOUCH THIS Shouldn't be here ----------------\n");
+        KernelExit(mem_code);
+    }
 }
 
 void trap_math_handler(UserContext *user_context)

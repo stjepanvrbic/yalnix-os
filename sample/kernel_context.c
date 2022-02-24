@@ -108,9 +108,11 @@ KernelContext *KCCopy(KernelContext *kc_in,
 // other process is in the ready queue.
 void switch_to_next_ready_process()
 {
-    // If current pcb is not idle, add it back to the end of the ready queue.
+    // If current pcb is not idle nor blocked nor defunct, add it back to the end of the ready queue.
     int status;
-    if (curr_pcb->pid != idle_pcb.pid)
+    bool isBlocked = qsearch(blocked_queue, (void *)&search_pcb, (void *)&curr_pcb->pid) != NULL;
+    bool isDefunct = qsearch(defunct_queue, (void *)&search_pcb, (void *)&curr_pcb->pid) != NULL;
+    if (curr_pcb->pid != idle_pcb.pid && !isBlocked && !isDefunct)
     {
         status = (int)qput(ready_queue, (void *)curr_pcb);
         // If can't put in the queue, keep running the current process.
@@ -124,9 +126,15 @@ void switch_to_next_ready_process()
     // Get first process from the ready queue
     pcb_t *next_pcb = (pcb_t *)qget(ready_queue);
     // If we were idle and the queue is empty, keep running idle.
-    if (next_pcb == NULL)
+    if (curr_pcb->pid == idle_pcb.pid && next_pcb == NULL)
     {
         return;
+    }
+
+    // If current pcb isn't idle and the ready is empty, next pcb is idle.
+    if (curr_pcb->pid != idle_pcb.pid && next_pcb == NULL)
+    {
+        next_pcb = &idle_pcb;
     }
 
     curr_pcb->user_context = *curr_uctxt;

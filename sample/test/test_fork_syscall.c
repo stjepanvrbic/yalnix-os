@@ -1,4 +1,4 @@
-/* test_get_pid_syscall.c ---
+/* test_fork_syscall.c ---
  *
  *
  * Author:  team yeyeye
@@ -15,6 +15,7 @@ int main()
 {
     TracePrintf(1, "\n------------Pre Fork-----------------\n");
     int pid = Fork();
+    TracePrintf(0, "\n------------ PID: %d ----------------\n", pid);
     if (pid == 0)
     {
         TracePrintf(1, "\n-=-=-=-=-=-=-=In Child-=-=-=-=-=-=-=-=-\n");
@@ -22,6 +23,10 @@ int main()
     else
     {
         TracePrintf(1, "\n------------My PID is: %d--------------\n", pid);
+    }
+
+    while (1)
+    {
     }
     return 0;
 }
