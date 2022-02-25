@@ -57,7 +57,9 @@ void trap_kernel_handler(UserContext *user_context)
 
     case YALNIX_WAIT:
         TracePrintf(0, "\n------------ TRAP IN WAIT CASE ----------------\n");
-        // KernelWait();
+        int *status_ptr = (int *)user_context->regs[0];
+        response = KernelWait(status_ptr);
+        user_context->regs[0] = response;
         break;
 
     case YALNIX_GETPID:

@@ -33,8 +33,8 @@ int KernelFork(void)
     }
 
     TracePrintf(0, "\n------------ About to Create Region 1 Page Table ----------------\n");
-    //Copy the region 1 page table
-    // Make an empty page table new_pt
+    // Copy the region 1 page table
+    //  Make an empty page table new_pt
     page_table_t *new_pt = new_pcb->memory_context.user_page_table;
 
     TracePrintf(0, "\n------------ About to Initialize Region 1 Page Table ----------------\n");
@@ -127,6 +127,7 @@ int KernelExec(char *filename, char **argvec)
         return ERROR;
     }
     TracePrintf(0, "\n------------ Leaving Exec ----------------\n");
+    WriteRegister(REG_TLB_FLUSH, TLB_FLUSH_ALL);
 }
 
 void KernelExit(int status)
@@ -234,6 +235,7 @@ int KernelWait(int *status_ptr)
     // If the process has defunct children, we can just return the pid of the first one
     else if (!qisempty(curr_pcb->deceased_children))
     {
+        TracePrintf(0, "\n--------------- Defunct children case ---------------\n");
         pcb_t *first_child = (pcb_t *)qget(curr_pcb->deceased_children);
         if (first_child == NULL)
         {
@@ -247,6 +249,7 @@ int KernelWait(int *status_ptr)
     // In the blocked queue, and switch to the next ready process
     else if (!qisempty(curr_pcb->children))
     {
+        TracePrintf(0, "\n--------------- No defunct children, but running children case ---------------\n");
         func_status = (int)qput(blocked_queue, curr_pcb); // Add dead process to defunct queue
         if (func_status != 0)
         {

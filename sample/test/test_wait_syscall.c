@@ -27,9 +27,13 @@ int main()
 
     TracePrintf(1, "\n------------ PARENT: Waiting for kid with pid : %d--------------\n", pid);
     int status;
-    Wait(&status);
+    int err = Wait(&status);
+    if (err == ERROR)
+    {
+        TracePrintf(1, "\n------------ PARENT: WE GOT A PROBLEM : --------------\n");
+    }
     // TracePrintf(1, "\n------------ PARENT: Stopped waiting, status is : %d--------------\n", status);
-    TracePrintf(1, "\n------------ PARENT: Stopped waiting, status is : --------------\n");
+    TracePrintf(1, "\n------------ PARENT: Stopped waiting, status is : %d--------------\n", status);
 
     return 0;
 }
