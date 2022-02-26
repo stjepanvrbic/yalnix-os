@@ -13,6 +13,9 @@
 #include "../include/kernel_context.h"
 #include "../include/process_coord_syscalls.h"
 #include "../include/pcb.h"
+#include "../include/queue.h"
+#include "../include/hardware.h"
+
 #include <unistd.h>
 #include <yalnix.h>
 
@@ -22,156 +25,138 @@ void trap_kernel_handler(UserContext *user_context)
 
     // Get the trap code from the user_context
     int code = user_context->code;
-    int addr, clock_ticks;
+    int addr, clock_ticks, status;
+    char *filename;
+    char **argvec;
+    u_long response;
 
-    // Switch statement to invoke the correct syscall wrapper
+    // Switch statement to invoke the correct syscall wrapper.
     switch (code)
     {
     case YALNIX_FORK:
-        // KernelFork();
+        TracePrintf(0, "\n------------ TRAP IN FORK CASE ----------------\n");
+        response = (u_long)KernelFork();
+        user_context->regs[0] = response;
         break;
 
     case YALNIX_EXEC:
-        // user_context->code;
-        // KernelExec();
+        TracePrintf(0, "\n------------ TRAP IN EXEC CASE ----------------\n");
+        filename = (char *)user_context->regs[0];
+        argvec = (char **)user_context->regs;
+        response = (u_long)KernelExec(filename, argvec);
+        *user_context = curr_pcb->user_context;
+        user_context->regs[0] = response;
         break;
 
     case YALNIX_EXIT:
-        // KernelFork();
+        TracePrintf(0, "\n------------ TRAP IN EXIT CASE ----------------\n");
+        status = (int)user_context->regs[0];
+        KernelExit(status);
         break;
 
     case YALNIX_WAIT:
-        // KernelWait();
+        TracePrintf(0, "\n------------ TRAP IN WAIT CASE ----------------\n");
+        int *status_ptr = (int *)user_context->regs[0];
+        response = (u_long)KernelWait(status_ptr);
+        user_context->regs[0] = response;
         break;
 
     case YALNIX_GETPID:
-        KernelGetPid();
+        TracePrintf(0, "\n------------ TRAP IN GETPID CASE ----------------\n");
+        response = (u_long)KernelGetPid();
+        user_context->regs[0] = response;
         break;
 
     case YALNIX_BRK:
+        TracePrintf(0, "\n------------ TRAP IN BRK CASE ----------------\n");
         addr = user_context->regs[0];
-        KernelBrk((void *)addr);
+        response = (u_long)KernelBrk((void *)addr);
+        user_context->regs[0] = response;
         break;
 
     case YALNIX_DELAY:
+        TracePrintf(0, "\n------------ TRAP IN DELAY CASE ----------------\n");
         clock_ticks = user_context->regs[0];
-        KernelDelay(clock_ticks);
+        response = (u_long)KernelDelay(clock_ticks);
+        user_context->regs[0] = response;
         break;
 
     default:
         break;
     }
 
-    // return
+    return;
 }
 
 void trap_clock_handler(UserContext *user_context)
 {
-    // If there other processes in the ready queue
-    //      (round-robin process scheduling)
-    //      perform context switch to the first process in the ready queue
-    // Else
-    //      dispatch idle
-
-    // Check which process is running
-    // If idle currently running
-    if (curr_pcb->pid == idle_pcb.pid)
-    {
-        TracePrintf(0, "\n------------ I AM IDLE about to switch to INIT ----------------\n");
-        // Save user context
-        idle_pcb.user_context = *user_context;
-
-        // Indicate the virtual memory base address of the region 1 page table.
-        WriteRegister(REG_PTBR1, (unsigned int)init_pcb.memory_context.user_page_table->table);
-    }
-    // If init currently running
-    else
-    {
-        TracePrintf(0, "\n------------ I AM INIT about to switch to IDLE ----------------\n");
-        // Save user context
-        init_pcb.user_context = *user_context;
-
-        // Indicate the virtual memory base address of the region 1 page table.
-        WriteRegister(REG_PTBR1, (unsigned int)idle_pcb.memory_context.user_page_table->table);
-    }
-
-    // Indicate the number of page table entries in the region 1 page table.
-    WriteRegister(REG_PTLR1, N_R1_PTE_ENTRIES);
-
-    // Flush the TLB
-    WriteRegister(REG_TLB_FLUSH, TLB_FLUSH_1);
-
-    // Check which process is running
-    // If idle currently running
-    if (curr_pcb->pid == idle_pcb.pid)
-    {
-        // Set the new current pcb
-        curr_pcb = &init_pcb;
-        // Switch from idle to init
-        TracePrintf(0, "\n------------ I AM IDLE about to switch to INIT ----------------\n");
-        int status = KernelContextSwitch(KCSwitch, (void *)&idle_pcb, (void *)&init_pcb);
-        if (status != 0)
-        {
-            TracePrintf(0, "\n--------------- Kernel Context Switch Failed ---------------\n");
-        }
-        TracePrintf(0, "\n--------------- Back from the switch! I AM IDLE ---------------\n");
-        // Set user context to new pcb context
-        *user_context = idle_pcb.user_context;
-    }
-    // If init currently running
-    else
-    {
-        // Set the new current pcb
-        curr_pcb = &idle_pcb;
-        // Switch from init to idel
-        TracePrintf(0, "\n--------------- I AM INIT about to switch to IDLE ---------------\n");
-        int status = KernelContextSwitch(KCSwitch, (void *)&init_pcb, (void *)&idle_pcb);
-        if (status != 0)
-        {
-            TracePrintf(0, "\n--------------- Kernel Context Switch Failed ---------------\n");
-        }
-        TracePrintf(0, "\n--------------- Back from the switch! I AM INIT ---------------\n");
-        // Set user context to new pcb context
-        *user_context = init_pcb.user_context;
-    }
-
+    TracePrintf(0, "\n------------ clock trap triggered ----------------\n");
+    switch_to_next_ready_process();
     TracePrintf(0, "\n------------ leaving clock trap handler ----------------\n");
 }
 
 void trap_illegal_handler(UserContext *user_context)
 {
-    // Invoke Exit() syscall to abort current process
     TracePrintf(0, "\n------------ illegal trap triggered ----------------\n");
-    TracePrintf(0, "\nTHIS TRAP IS NOT YET HANDLED\n");
+    TracePrintf(0, "\n------------ Process calling Illegal Trap Handler pid: %d ----------------\n", curr_pcb->pid);
+
+    int status = user_context->code;
+    TracePrintf(0, "\n------------ Status Code when Exiting: %d ----------------\n", status);
+
+    KernelExit(status);
 }
 
 void trap_memory_handler(UserContext *user_context)
 {
-
+    // Extract the type of trigger that triggered the trap.
+    int mem_code = user_context->code;
+    void *offending_address = user_context->addr;
     TracePrintf(0, "\n------------ memory trap triggered ----------------\n");
-    TracePrintf(0, "\nOffending address: %p\n", user_context->addr);
+    TracePrintf(0, "\nOffending address: %p\n", offending_address);
 
-    // Get the trap code from the user_context
-    // Switch statement to invoke the correct syscall wrapper
-    //      If trap is an exception to enlarge the current process's stack
-    //          try to enlarge stack
-    //          If successful
-    //              return allowing the process to keep running
-    //          Else
-    //              invoke Exit() syscall to abort current process
-    //      Else
-    //          invoke Exit() syscall to abort current process
+    // If it is a permission error trigger: return ERROR.
+    if (mem_code == YALNIX_ACCERR)
+    {
+        TracePrintf(0, "\n---------------- CAN'T TOUCH THIS Invalid Permissions ----------------\n");
+        KernelExit(mem_code);
+    }
+    // If it is an address not yet mapped trigger:
+    else if (mem_code == YALNIX_MAPERR)
+    {
+        // If more than two frames below the current pointer, return ERROR.
+        if (offending_address < (curr_pcb->memory_context.region_1_sp - 2 * PAGESIZE))
+        {
+            TracePrintf(0, "\n---------------- CAN'T TOUCH THIS Stack growing more than 2 pages ----------------\n");
+            KernelExit(mem_code);
+        }
 
-    // return
-    TracePrintf(0, "\n------------ memory trap triggered ----------------\n");
-    TracePrintf(0, "\nTHIS TRAP IS NOT YET HANDLED\n");
+        // Allocate memory for the stack until this new address.
+        int high_vpn = (int)curr_pcb->memory_context.region_1_sp >> PAGESHIFT;
+        int low_vpn = (int)offending_address >> PAGESHIFT;
+        for (int page_id = low_vpn; page_id < high_vpn; page_id++)
+        {
+            int free_frame = first_free_frame_idx();
+            curr_pcb->memory_context.user_page_table->table[page_id].valid = 1;
+            curr_pcb->memory_context.user_page_table->table[page_id].prot = PROT_READ | PROT_WRITE;
+            curr_pcb->memory_context.user_page_table->table[page_id].pfn = free_frame;
+        }
+    }
+    else
+    {
+        TracePrintf(0, "\n---------------- CAN'T TOUCH THIS Shouldn't be here ----------------\n");
+        KernelExit(mem_code);
+    }
 }
 
 void trap_math_handler(UserContext *user_context)
 {
-    // Invoke Exit() syscall to abort current process
     TracePrintf(0, "\n------------ math trap triggered ----------------\n");
-    TracePrintf(0, "\nTHIS TRAP IS NOT YET HANDLED\n");
+    TracePrintf(0, "\n------------ Process calling Math Trap Handler pid: %d ----------------\n", curr_pcb->pid);
+
+    int status = user_context->code;
+    TracePrintf(0, "\n------------ Status Code when Exiting: %d ----------------\n", status);
+
+    KernelExit(status);
 }
 
 void trap_tty_receive_handler(UserContext *user_context)
@@ -202,7 +187,8 @@ void trap_tty_transmit_handler(UserContext *user_context)
 
 void trap_disk_handler(UserContext *user_context)
 {
-    // return
     TracePrintf(0, "\n------------ disk trap triggered ----------------\n");
     TracePrintf(0, "\nTHIS TRAP IS NOT YET HANDLED\n");
+
+    return;
 }

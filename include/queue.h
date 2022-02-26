@@ -13,7 +13,7 @@
 
 #include <yalnix.h>
 #include <ykernel.h>
-#include <utils.h>
+#include "utils.h"
 
 /* the queue representation is hidden from users of the module */
 typedef void queue_t;
@@ -60,3 +60,12 @@ void *qremove(queue_t *qp,
  * q2 is deallocated, closed, and unusable upon completion
  */
 void qconcat(queue_t *q1p, queue_t *q2p);
+
+/* Returns 0 if empty, 1 if not.
+ */
+bool qisempty(queue_t *qp);
+
+// Queue data structures
+extern queue_t *ready_queue;
+extern queue_t *blocked_queue;
+extern queue_t *defunct_queue;

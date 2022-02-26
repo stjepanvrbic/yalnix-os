@@ -13,10 +13,10 @@
 
 int main()
 {
+    TracePrintf(1, "\n-=-=-=-=-=-=-=-=-= IN GET PID USER =-=-=-=-=-=-=-=-=-\n");
     int pid = GetPid();
     while (1)
     {
-
         TracePrintf(1, "\n-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-\n");
         TracePrintf(1, "\n            My PID is: %d\n", pid);
         Pause();

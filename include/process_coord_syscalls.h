@@ -21,7 +21,7 @@ int KernelFork(void);
 // Inputs:
 // Outputs:
 //--------------------------------------------------------------------------------
-int KernelExec(char filename, char *argvec);
+int KernelExec(char *filename, char **argvec);
 
 //---------------------------------- KernelExit ----------------------------------
 // Description:

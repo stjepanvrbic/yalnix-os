@@ -102,3 +102,63 @@ KernelContext *KCCopy(KernelContext *kc_in,
     // Return kc_in
     return kc_in;
 }
+
+// Stops the current process, adds it to the end of the ready queue,
+// and switches to the next ready process. Default process is idle if no
+// other process is in the ready queue.
+void switch_to_next_ready_process()
+{
+    // If current pcb is not idle nor blocked nor defunct, add it back to the end of the ready queue.
+    int status;
+    bool isBlocked = qsearch(blocked_queue, (void *)&search_pcb, (void *)&curr_pcb->pid) != NULL;
+    bool isDefunct = qsearch(defunct_queue, (void *)&search_pcb, (void *)&curr_pcb->pid) != NULL;
+    if (curr_pcb->pid != idle_pcb.pid && !isBlocked && !isDefunct)
+    {
+        status = (int)qput(ready_queue, (void *)curr_pcb);
+        // If can't put in the queue, keep running the current process.
+        if (status != 0)
+        {
+            TracePrintf(0, "\n--------------- ERROR : Adding pcb to queue FAILED ---------------\n");
+            return;
+        }
+    }
+
+    // Get first process from the ready queue
+    pcb_t *next_pcb = (pcb_t *)qget(ready_queue);
+    // If we were idle and the queue is empty, keep running idle.
+    if (curr_pcb->pid == idle_pcb.pid && next_pcb == NULL)
+    {
+        return;
+    }
+
+    // If current pcb isn't idle and the ready is empty, next pcb is idle.
+    if (curr_pcb->pid != idle_pcb.pid && next_pcb == NULL)
+    {
+        next_pcb = &idle_pcb;
+    }
+
+    curr_pcb->user_context = *curr_uctxt;
+
+    // Write the page table for the next process to the register
+    WriteRegister(REG_PTBR1, (unsigned int)next_pcb->memory_context.user_page_table->table);
+
+    // Indicate the number of page table entries in the region 1 page table.
+    WriteRegister(REG_PTLR1, N_R1_PTE_ENTRIES);
+
+    // Flush the TLB
+    WriteRegister(REG_TLB_FLUSH, TLB_FLUSH_1);
+
+    pcb_t *prev_pcb = curr_pcb;
+    curr_pcb = next_pcb;
+
+    // Kernel Context Switch from previous to next pcb.
+    TracePrintf(0, "\n------------ About to Switch from pid: %d to pid: %d ----------------\n", prev_pcb->pid, next_pcb->pid);
+    status = KernelContextSwitch(KCSwitch, (void *)prev_pcb, (void *)next_pcb);
+    if (status != 0)
+    {
+        TracePrintf(0, "\n--------------- Kernel Context Switch Failed ---------------\n");
+    }
+    TracePrintf(0, "\n--------------- Back from the switch! I am pid: %d ---------------\n", curr_pcb->pid);
+    // Set user context to new pcb context
+    *curr_uctxt = curr_pcb->user_context;
+}
