@@ -336,6 +336,9 @@ int KernelBrk(void *addr)
         }
     }
 
+    // Flush the TLB
+    WriteRegister(REG_TLB_FLUSH, TLB_FLUSH_1);
+
     TracePrintf(0, "\n---------- New kernel brk %x-----------\n", curr_pcb->memory_context.brk);
     return SUCCESS;
 }

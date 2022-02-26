@@ -16,7 +16,7 @@ int main()
     int size = 10000;
 
     TracePrintf(1, "\n-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-\n");
-    TracePrintf(1, "\n----------about to malloc----------\n");
+    TracePrintf(1, "\n---------- about to malloc ----------\n");
     int *test_malloc = malloc(sizeof(int) * size);
     // Using new allocated memory
     int i;
@@ -27,10 +27,13 @@ int main()
     }
     if (test_malloc == NULL)
     {
-        TracePrintf(1, "\n----------malloc failed----------\n");
+        TracePrintf(1, "\n---------- malloc failed ----------\n");
     }
-    TracePrintf(1, "\n----------malloc succesful----------\n");
-    while (1)
-    {
-    }
+    TracePrintf(1, "\n---------- malloc succesful ----------\n");
+
+    TracePrintf(1, "\n-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-\n");
+    TracePrintf(1, "\n---------- about to free ----------\n");
+    free(test_malloc);
+    TracePrintf(1, "\n---------- free succesful ----------\n");
+    Exit(0);
 }

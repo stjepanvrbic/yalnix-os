@@ -35,7 +35,7 @@ void trap_kernel_handler(UserContext *user_context)
     {
     case YALNIX_FORK:
         TracePrintf(0, "\n------------ TRAP IN FORK CASE ----------------\n");
-        response = KernelFork();
+        response = (u_long)KernelFork();
         user_context->regs[0] = response;
         break;
 
@@ -43,40 +43,42 @@ void trap_kernel_handler(UserContext *user_context)
         TracePrintf(0, "\n------------ TRAP IN EXEC CASE ----------------\n");
         filename = (char *)user_context->regs[0];
         argvec = (char **)user_context->regs;
-        response = KernelExec(filename, argvec);
+        response = (u_long)KernelExec(filename, argvec);
+        *user_context = curr_pcb->user_context;
         user_context->regs[0] = response;
         break;
 
     case YALNIX_EXIT:
         TracePrintf(0, "\n------------ TRAP IN EXIT CASE ----------------\n");
         status = (int)user_context->regs[0];
-        TracePrintf(0, "\n------------ Exit Status: %d ----------------\n", status);
         KernelExit(status);
-        TracePrintf(0, "\n------------ Done exiting ----------------\n", status);
         break;
 
     case YALNIX_WAIT:
         TracePrintf(0, "\n------------ TRAP IN WAIT CASE ----------------\n");
         int *status_ptr = (int *)user_context->regs[0];
-        response = KernelWait(status_ptr);
+        response = (u_long)KernelWait(status_ptr);
         user_context->regs[0] = response;
         break;
 
     case YALNIX_GETPID:
         TracePrintf(0, "\n------------ TRAP IN GETPID CASE ----------------\n");
-        KernelGetPid();
+        response = (u_long)KernelGetPid();
+        user_context->regs[0] = response;
         break;
 
     case YALNIX_BRK:
         TracePrintf(0, "\n------------ TRAP IN BRK CASE ----------------\n");
         addr = user_context->regs[0];
-        KernelBrk((void *)addr);
+        response = (u_long)KernelBrk((void *)addr);
+        user_context->regs[0] = response;
         break;
 
     case YALNIX_DELAY:
         TracePrintf(0, "\n------------ TRAP IN DELAY CASE ----------------\n");
         clock_ticks = user_context->regs[0];
-        KernelDelay(clock_ticks);
+        response = (u_long)KernelDelay(clock_ticks);
+        user_context->regs[0] = response;
         break;
 
     default:
@@ -88,6 +90,7 @@ void trap_kernel_handler(UserContext *user_context)
 
 void trap_clock_handler(UserContext *user_context)
 {
+    TracePrintf(0, "\n------------ clock trap triggered ----------------\n");
     switch_to_next_ready_process();
     TracePrintf(0, "\n------------ leaving clock trap handler ----------------\n");
 }
