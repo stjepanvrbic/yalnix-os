@@ -16,7 +16,7 @@ int main(int argc, char **argv)
     TracePrintf(1, "\n-=-=-=-=-=-=-=-=-= In Test Exec =-=-=-=-=-=-=-=-=-\n");
 
     TracePrintf(1, "\n-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-\n");
-    TracePrintf(1, "\n        Args: %d || Argv[0]: %s\n", argc, argv[0]);
+    TracePrintf(1, "\n        Argc: %d || Argv[0]: %s, Argv[1]: %s\n", argc, argv[0], argv[1]);
     TracePrintf(1, "\n-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-\n");
     Pause();
 

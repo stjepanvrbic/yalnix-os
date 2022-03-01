@@ -14,19 +14,16 @@
 int main()
 {
     TracePrintf(1, "\n------------Pre Fork-----------------\n");
+    TracePrintf(0, "\n------------ Forking process PID: %d ----------------\n", GetPid());
     int pid = Fork();
-    TracePrintf(0, "\n------------ PID: %d ----------------\n", pid);
     if (pid == 0)
     {
         TracePrintf(1, "\n-=-=-=-=-=-=-=In Child-=-=-=-=-=-=-=-=-\n");
     }
     else
     {
-        TracePrintf(1, "\n------------My PID is: %d--------------\n", pid);
+        TracePrintf(1, "\n------------ PARENT : Child PID is: %d--------------\n", pid);
     }
 
-    while (1)
-    {
-    }
     return 0;
 }

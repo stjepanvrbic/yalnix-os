@@ -33,3 +33,10 @@ bool search_pcb(void *elementp, const void *keyp)
     }
     return false;
 }
+
+void print_pcb(void *elementp)
+{
+    pcb_t *element = (pcb_t *)elementp;
+    TracePrintf(0, "\n------------ PCB Address: %p ----------------\n", element);
+    TracePrintf(0, "\n------------ PCB PID: %d --------------------\n", element->pid);
+}

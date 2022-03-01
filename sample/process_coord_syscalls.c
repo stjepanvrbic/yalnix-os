@@ -139,12 +139,18 @@ void KernelExit(int status)
      * When orphans exits, no need to save or report status.
      */
 
-    TracePrintf(0, "\n------------ Exit Triggered ----------------\n");
+    TracePrintf(0, "\n------------ Exit Triggered from PID %d ----------------\n", curr_pcb->pid);
 
     int func_status;
     pcb_t *parent = (pcb_t *)curr_pcb->parent_pcb_p;
-
-    TracePrintf(0, "\n------------ Parent pid: %d ----------------\n", parent->pid);
+    if (parent != NULL)
+    {
+        TracePrintf(0, "\n------------ Parent pid: %d ----------------\n", parent->pid);
+    }
+    else
+    {
+        TracePrintf(0, "\n------------ Current Process has no alive parent ----------------\n");
+    }
 
     // If the initial process exists, halt the system
     if (curr_pcb->pid == idle_pcb.pid)
@@ -152,15 +158,15 @@ void KernelExit(int status)
         Halt();
     }
 
-    // Set the current process childs parent to Null
-    qapply(curr_pcb->children, &remove_parent);
+    // // Set the current process childs parent to Null
+    // qapply(curr_pcb->children, &remove_parent);
 
     // Check if the parent exists
     pcb_t *in_defunct_queue = NULL;
     if (parent != NULL)
     {
         // Check if the parent is in the defunct queue
-        pcb_t *in_defunct_queue = (pcb_t *)qsearch(defunct_queue, (void *)&search_pcb, (void *)&parent->pid);
+        in_defunct_queue = (pcb_t *)qsearch(defunct_queue, &search_pcb, (void *)&parent->pid);
     }
 
     // If the parent is alive
@@ -175,7 +181,7 @@ void KernelExit(int status)
         free(curr_pcb->memory_context.user_page_table);
 
         // Pop pcb from queue of children
-        pcb_t *found_pcb = (pcb_t *)qremove(parent->children, (void *)&search_pcb, (void *)&curr_pcb->pid);
+        pcb_t *found_pcb = (pcb_t *)qremove(parent->children, &search_pcb, (void *)&curr_pcb->pid);
         // If queue is empty, error
         if (found_pcb == NULL)
         {
@@ -191,7 +197,8 @@ void KernelExit(int status)
 
         // Check if parent is in blocked queue
         // If so remove it from blocked queue and add it to the ready queue
-        pcb_t *in_blocked_queue = (pcb_t *)qremove(blocked_queue, (void *)&search_pcb, (void *)&parent->pid);
+        pcb_t *in_blocked_queue = (pcb_t *)qremove(blocked_queue, &search_pcb, (void *)&parent->pid);
+
         if (in_blocked_queue != NULL)
         {
             func_status = (int)qput(ready_queue, (void *)in_blocked_queue);

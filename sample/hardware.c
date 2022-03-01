@@ -481,6 +481,12 @@ extern void KernelStart(char **cmd_args, unsigned int pmem_size, UserContext *uc
         WriteRegister(REG_PTLR1, N_R1_PTE_ENTRIES);
 
         curr_pcb->parent_pcb_p = &idle_pcb;
+        // Add the init process to the queue of ready processes.
+        status = (int)qput(idle_pcb.children, (void *)curr_pcb);
+        if (status != 0)
+        {
+            TracePrintf(0, "\n--------------- ERROR : Adding pcb to idle children queue FAILED ---------------\n");
+        }
 
         // If no init program is provided, run the base init program.
         if (cmd_args[0] == NULL)

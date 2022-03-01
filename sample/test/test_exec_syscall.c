@@ -13,16 +13,16 @@
 
 int main()
 {
-    TracePrintf(1, "\n------------Pre Exec-----------------\n");
+    TracePrintf(1, "\n------------ Pre Exec-----------------\n");
 
     int pid = Fork();
     TracePrintf(0, "\n------------ PID that fork returned: %d ----------------\n", pid);
     if (pid == 0)
     {
         TracePrintf(1, "\n-=-=-=-=-=-=-=In Child-=-=-=-=-=-=-=-=-\n");
-        char *args[1];
+        char *args[2];
         args[0] = "./test/test_exec";
-        // args[1] = "chicken";
+        args[1] = "chicken";
         int rc = Exec("./test/test_exec", args);
         if (rc == ERROR)
         {
@@ -32,10 +32,8 @@ int main()
     }
     else
     {
-        TracePrintf(1, "\n------------ Child that just got forked : My PID is: %d--------------\n", pid);
+        TracePrintf(1, "\n------------ PARENT: Child got forked with pid %d--------------\n", pid);
     }
-    while (1)
-    {
-    }
+
     return 0;
 }

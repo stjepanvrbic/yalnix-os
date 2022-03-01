@@ -29,6 +29,7 @@ void trap_kernel_handler(UserContext *user_context)
     char *filename;
     char **argvec;
     u_long response;
+    int i;
 
     // Switch statement to invoke the correct syscall wrapper.
     switch (code)
