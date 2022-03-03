@@ -15,6 +15,7 @@
 #include "../include/kernel_context.h"
 #include "../include/load_program.h"
 #include "../include/queue.h"
+#include "../include/io_syscalls.h"
 
 #include <ykernel.h>
 #include <yalnix.h>
@@ -30,6 +31,7 @@ kernel_page_table_t kernel_page_table;
 queue_t *ready_queue;
 queue_t *blocked_queue;
 queue_t *defunct_queue;
+queue_t terminal_buffers[4];
 
 // Set up the Region 1 Page Table.
 page_table_t *region_1_page_table;
@@ -342,6 +344,15 @@ extern void KernelStart(char **cmd_args, unsigned int pmem_size, UserContext *uc
     ready_queue = qopen();
     blocked_queue = qopen();
     defunct_queue = qopen();
+
+    // Initialize the TTY buffer
+    buffer = malloc(sizeof(char) * TERMINAL_MAX_LINE);
+
+    // Initialize the TTY buffer
+    for (int j = 0; j < 4; j++)
+    {
+        terminal_buffers[j] = qopen();
+    }
 
     // Initialize up KERNEL_BRK.
     KERNEL_BRK = _kernel_orig_brk;

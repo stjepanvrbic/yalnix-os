@@ -15,6 +15,7 @@
 #include "../include/pcb.h"
 #include "../include/queue.h"
 #include "../include/hardware.h"
+#include "../include/io_syscalls.h"
 
 #include <unistd.h>
 #include <yalnix.h>
@@ -79,6 +80,18 @@ void trap_kernel_handler(UserContext *user_context)
         TracePrintf(0, "\n------------ TRAP IN DELAY CASE ----------------\n");
         clock_ticks = user_context->regs[0];
         response = (u_long)KernelDelay(clock_ticks);
+        user_context->regs[0] = response;
+        break;
+
+    case YALNIX_TTY_READ:
+        TracePrintf(0, "\n------------ TRAP IN TTY READ CASE ----------------\n");
+        response = (u_long)TtyRead();
+        user_context->regs[0] = response;
+        break;
+
+    case YALNIX_TTY_WRITE:
+        TracePrintf(0, "\n------------ TRAP IN TTY WRITE CASE ----------------\n");
+        response = (u_long)TtyWrite();
         user_context->regs[0] = response;
         break;
 
@@ -162,15 +175,59 @@ void trap_math_handler(UserContext *user_context)
 
 void trap_tty_receive_handler(UserContext *user_context)
 {
+    TracePrintf(0, "\n------------ tty receive trap triggered ----------------\n");
+
+    TracePrintf(0, "\n------------ Terminal Number: %d ----------------\n", user_context->code);
+
+    int terminal_number = user_context->code;
+
+    tty_buffer_node_t *buffer_entry = malloc(sizeof(tty_buffer_node_t *));
+
+    // Get the length of the terminal input
+    int line_len = TtyReceive(terminal_number, (void *)&buffer_entry->buffer, TERMINAL_MAX_LINE);
+
+    buffer_entry->start_idx = 0;
+    buffer_entry->end_idx = line_len;
+
+    TracePrintf(0, "\n------------ Line length: %d ----------------\n", line_len);
+
+    // Save buffer entry into the respective queue
+    int status = (int)qput(&terminal_buffers[terminal_number], (void *)buffer_entry);
+    if (status != 0)
+    {
+        TracePrintf(0, "\n--------------- ERROR : Adding tty buffer node to queue FAILED ---------------\n");
+    }
+
+    // If the line length returned by ttyreceive is the max terminal then keep reading
+    while (line_len == TERMINAL_MAX_LINE)
+    {
+        tty_buffer_node_t *buffer_entry = malloc(sizeof(tty_buffer_node_t *));
+
+        // Get the length of the terminal input
+        line_len = TtyReceive(terminal_number, (void *)buffer_entry->buffer, TERMINAL_MAX_LINE);
+
+        TracePrintf(0, "\n------------ Line length: %d ----------------\n", line_len);
+
+        buffer_entry->start_idx = 0;
+        buffer_entry->end_idx = line_len;
+
+        // Save buffer entry into the respective queue
+        int status = (int)qput(&terminal_buffers[terminal_number], (void *)buffer_entry);
+        if (status != 0)
+        {
+            TracePrintf(0, "\n--------------- ERROR : Adding tty buffer node to queue FAILED ---------------\n");
+        }
+    }
+
     // Get the trap code from the user_context
 
-    // Read the input from the terminal using TtyReceive while passing the terminal to read from.
+    // Read the input from the terminal using TtyRead while passing the terminal to read from.
     // If necessary
     //      buffer the input line for a subsequent TtyRead syscall by some user process ??
 
     // return
-    TracePrintf(0, "\n------------ tty receive trap triggered ----------------\n");
-    TracePrintf(0, "\nTHIS TRAP IS NOT YET HANDLED\n");
+
+    TracePrintf(0, "\n------------ Leaving tty receive trap ----------------\n");
 }
 
 void trap_tty_transmit_handler(UserContext *user_context)
