@@ -69,3 +69,4 @@ bool qisempty(queue_t *qp);
 extern queue_t *ready_queue;
 extern queue_t *blocked_queue;
 extern queue_t *defunct_queue;
+extern queue_t *terminal_buffers;

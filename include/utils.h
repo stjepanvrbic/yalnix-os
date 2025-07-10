@@ -25,6 +25,13 @@ typedef struct bit_vector
     unsigned char *bit_arr;
 } bit_vector_t;
 
+typedef struct tty_buffer_node
+{
+    char buffer[TERMINAL_MAX_LINE];
+    int start_idx;
+    int end_idx;
+} tty_buffer_node_t;
+
 bool search_pcb(void *elementp, const void *keyp);
 
 void remove_parent(void *elementp);
